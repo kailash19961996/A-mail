@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Settings, Clock } from 'lucide-react';
+import { dev_log } from '../../utils/coreUtils';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
 const GeneralConfigPage: React.FC = () => {
+  useEffect(() => {
+    dev_log('⚙️ General Config page accessed');
+  }, []);
+
   return (
     <div className="p-6">
       {/* Header */}

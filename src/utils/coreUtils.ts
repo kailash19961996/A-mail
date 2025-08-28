@@ -16,9 +16,18 @@ export const getApiConfig = () => {
   };
 };
 
+// Development logging function - only logs in beta environment
+export const dev_log = (...args: unknown[]) => {
+  const isProduction = import.meta.env.VITE_IS_PRODUCTION === 'true';
+  if (!isProduction) {
+    console.log('[DEV]', ...args);
+  }
+};
+
 // Create axios instance with common configuration
 export const createApiInstance = () => {
   const config = getApiConfig();
+  dev_log('🌐 Creating API instance with config:', config);
   return axios.create(config);
 };
 

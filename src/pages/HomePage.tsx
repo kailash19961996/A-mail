@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Briefcase, FileText, TrendingUp, BarChart3, Activity, CheckCircle } from 'lucide-react';
+import { dev_log } from '../utils/coreUtils';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -31,6 +32,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const loadPageData = async () => {
+      dev_log('🏠 Loading home page data for user:', user?.user_type);
       setIsLoading(true);
       try {
         // TODO: Replace with actual API call
@@ -39,6 +41,7 @@ const HomePage: React.FC = () => {
         
         // Mock data for now
         if (user?.user_type === 'SysAdmin' || user?.user_type === 'Admin') {
+          dev_log('📊 Loading admin/sysadmin dashboard data');
           setPageData({
             type: 'lead-gen-summary',
             totalLeads: 156,
@@ -47,6 +50,7 @@ const HomePage: React.FC = () => {
             topSources: ['Website', 'Referral', 'Social Media']
           });
         } else {
+          dev_log('📋 Loading case handler dashboard data');
           setPageData({
             type: 'user-summary',
             activeCases: 8,
@@ -55,10 +59,13 @@ const HomePage: React.FC = () => {
             recentActivity: ['Case updated', 'Document uploaded', 'Client contacted']
           });
         }
+        dev_log('✅ Home page data loaded successfully');
       } catch (error) {
+        dev_log('💥 Failed to load home page data:', error);
         console.error('Failed to load page data:', error);
       } finally {
         setIsLoading(false);
+        dev_log('🏁 Home page data loading completed');
       }
     };
 

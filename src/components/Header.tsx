@@ -1,6 +1,7 @@
 import React from 'react';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { dev_log } from '../utils/coreUtils';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -18,6 +19,7 @@ const Header: React.FC = () => {
   // ============================================================================
 
   const handleLogout = async () => {
+    dev_log('🚪 User initiated logout from header');
     await logout();
   };
 

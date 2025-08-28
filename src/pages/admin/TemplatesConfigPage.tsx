@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FileText, Clock } from 'lucide-react';
+import { dev_log } from '../../utils/coreUtils';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
 const TemplatesConfigPage: React.FC = () => {
+  useEffect(() => {
+    dev_log('📄 Templates Config page accessed');
+  }, []);
+
   return (
     <div className="p-6">
       {/* Header */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { createApiInstance } from '../../utils/coreUtils';
+import { createApiInstance, dev_log } from '../../utils/coreUtils';
 import { CheckCircle, XCircle, AlertCircle, Loader } from 'lucide-react';
 
 // ============================================================================
@@ -51,18 +51,24 @@ const ClientReviewPage: React.FC = () => {
   // ============================================================================
 
   const loadClientReviewData = useCallback(async () => {
+    dev_log('👥 Loading client review data...');
     setIsLoading(true);
     setError('');
     
     try {
+      dev_log('📡 Making API call to /validation/client-review');
       const response = await api.get('/validation/client-review');
       const data: ClientReviewResponse = response.data;
+      dev_log('✅ Client review data received:', { clientCount: data.clients_list.length, lockedUntil: data.locked_until });
       setClients(data.clients_list);
     } catch (error: unknown) {
+      dev_log('💥 Failed to load client review data:', error);
       if (error && typeof error === 'object' && 'response' in error) {
         const apiError = error as { response?: { status?: number; data?: { responseMsg?: string } } };
         if (apiError.response?.status === 400 || apiError.response?.status === 401) {
-          setError(apiError.response?.data?.responseMsg || 'Failed to load client review data');
+          const customMessage = apiError.response?.data?.responseMsg || 'Failed to load client review data';
+          dev_log('🚫 API error with custom message:', customMessage);
+          setError(customMessage);
         } else {
           setError('Failed to load client review data. Please try again.');
         }
@@ -71,6 +77,7 @@ const ClientReviewPage: React.FC = () => {
       }
     } finally {
       setIsLoading(false);
+      dev_log('🏁 Client review data loading completed');
     }
   }, [api]);
 
@@ -80,17 +87,21 @@ const ClientReviewPage: React.FC = () => {
 
   useEffect(() => {
     if (user) {
+      dev_log('👤 User authenticated, loading client review data for:', user.user_type);
       loadClientReviewData();
     }
   }, [user, loadClientReviewData]);
 
   const submitClientAction = async (payload: ApprovalPayload) => {
+    dev_log('🔧 Submitting client action:', payload);
     setIsProcessing(true);
     setError('');
     
     try {
+      dev_log('📡 Making API call to /validation/client-review with payload');
       await api.post('/validation/client-review', payload);
       
+      dev_log('✅ Client action submitted successfully');
       // Remove processed clients from the list
       setClients(prev => prev.filter(client => !payload.client_ids.includes(client.client_id)));
       setSelectedClients(new Set());
@@ -121,6 +132,7 @@ const ClientReviewPage: React.FC = () => {
   // ============================================================================
 
   const handleSelectAll = (checked: boolean) => {
+    dev_log('📋 Select all clients:', { checked, totalClients: clients.length });
     if (checked) {
       setSelectedClients(new Set(clients.map(client => client.client_id)));
     } else {
@@ -129,6 +141,7 @@ const ClientReviewPage: React.FC = () => {
   };
 
   const handleSelectClient = (clientId: number, checked: boolean) => {
+    dev_log('✅ Client selection changed:', { clientId, checked, totalSelected: selectedClients.size });
     const newSelected = new Set(selectedClients);
     if (checked) {
       newSelected.add(clientId);
@@ -141,6 +154,8 @@ const ClientReviewPage: React.FC = () => {
   const handleApproveSelected = () => {
     if (selectedClients.size === 0) return;
     
+    dev_log('✅ Approving selected clients:', { count: selectedClients.size, clientIds: Array.from(selectedClients) });
+    
     const payload: ApprovalPayload = {
       client_ids: Array.from(selectedClients),
       action: 'approve'
@@ -151,11 +166,18 @@ const ClientReviewPage: React.FC = () => {
 
   const handleRejectSelected = () => {
     if (selectedClients.size === 0) return;
+    dev_log('❌ Rejecting selected clients:', { count: selectedClients.size, clientIds: Array.from(selectedClients) });
     setShowRejectModal(true);
   };
 
   const handleRejectWithReason = () => {
     if (!rejectionReason) return;
+    
+    dev_log('❌ Rejecting clients with reason:', { 
+      count: selectedClients.size, 
+      clientIds: Array.from(selectedClients), 
+      reason: rejectionReason 
+    });
     
     const payload: ApprovalPayload = {
       client_ids: Array.from(selectedClients),
@@ -167,6 +189,8 @@ const ClientReviewPage: React.FC = () => {
   };
 
   const handleApproveSingle = (clientId: number) => {
+    dev_log('✅ Approving single client:', { clientId });
+    
     const payload: ApprovalPayload = {
       client_ids: [clientId],
       action: 'approve'
@@ -176,6 +200,7 @@ const ClientReviewPage: React.FC = () => {
   };
 
   const handleRejectSingle = (clientId: number) => {
+    dev_log('❌ Rejecting single client:', { clientId });
     setSelectedClients(new Set([clientId]));
     setShowRejectModal(true);
   };

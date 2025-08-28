@@ -6,7 +6,7 @@ import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
 import HomePage from '../pages/HomePage';
 import ClientReviewPage from '../pages/validate/ClientReviewPage';
-import IdReviewPage from '../pages/IdReviewPage';
+import IdReviewPage from '../pages/validate/IdReviewPage';
 import SarReviewPage from '../pages/review/SarReviewPage';
 import PreSubReviewPage from '../pages/review/PreSubReviewPage';
 import FlocReviewPage from '../pages/review/FlocReviewPage';
@@ -16,6 +16,8 @@ import GeneralConfigPage from '../pages/admin/GeneralConfigPage';
 import TemplatesConfigPage from '../pages/admin/TemplatesConfigPage';
 import LendersConfigPage from '../pages/admin/LendersConfigPage';
 import ActionsConfigPage from '../pages/admin/ActionsConfigPage';
+import UserManagement from '../pages/admin/UserManagement';
+import { dev_log } from '../utils/coreUtils';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -38,12 +40,15 @@ const AppMain: React.FC = () => {
   // Check authentication on route change
   useEffect(() => {
     const verifyAuth = async () => {
+      dev_log('🔄 Route change detected, verifying authentication...', location.pathname);
       setIsLoading(true);
       const isAuth = await checkAuth();
       if (!isAuth) {
+        dev_log('❌ Authentication failed, redirecting to login...');
         navigate('/login');
         return;
       }
+      dev_log('✅ Authentication verified for route:', location.pathname);
       setIsLoading(false);
     };
 
@@ -53,6 +58,7 @@ const AppMain: React.FC = () => {
   // Redirect to home if accessing root
   useEffect(() => {
     if (location.pathname === '/') {
+      dev_log('🏠 Root path detected, redirecting to home...');
       navigate('/home');
     }
   }, [location.pathname, navigate]);
@@ -63,6 +69,7 @@ const AppMain: React.FC = () => {
 
   // If not authenticated, show loader
   if (!isAuthenticated || !user) {
+    dev_log('⏳ User not authenticated, showing loader...');
     return <Loader size="lg" text="Verifying authentication..." />;
   }
 
@@ -103,6 +110,7 @@ const AppMain: React.FC = () => {
               <Route path="/admin/templates" element={<TemplatesConfigPage />} />
               <Route path="/admin/lenders" element={<LendersConfigPage />} />
               <Route path="/admin/actions" element={<ActionsConfigPage />} />
+              <Route path="/admin/users" element={<UserManagement />} />
               
               {/* Legacy Routes - Redirect to home */}
               <Route path="/cases" element={<Navigate to="/all-cases" replace />} />

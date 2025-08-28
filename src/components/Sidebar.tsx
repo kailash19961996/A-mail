@@ -20,6 +20,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { dev_log } from '../utils/coreUtils';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -113,7 +114,8 @@ const Sidebar: React.FC = () => {
         { path: '/admin/config', label: 'General Config', icon: 'Settings' },
         { path: '/admin/templates', label: 'Templates Config', icon: 'FileText' },
         { path: '/admin/lenders', label: 'Lenders Config', icon: 'CreditCard' },
-        { path: '/admin/actions', label: 'Actions Config', icon: 'Zap' }
+        { path: '/admin/actions', label: 'Actions Config', icon: 'Zap' },
+        { path: '/admin/users', label: 'User Management', icon: 'Users' }
       ]
     }
   ];
@@ -163,6 +165,7 @@ const Sidebar: React.FC = () => {
   };
 
   const handleNavigation = (path: string) => {
+    dev_log('🧭 Navigation requested to:', path);
     navigate(path);
   };
 
@@ -171,6 +174,9 @@ const Sidebar: React.FC = () => {
   // ============================================================================
 
   const filteredNavigationGroups = navigationGroups.filter(hasAccess);
+  
+  dev_log('🔐 User access level:', user?.user_type);
+  dev_log('📋 Available navigation groups:', filteredNavigationGroups.map(g => g.label));
 
   // ============================================================================
   // RENDER
