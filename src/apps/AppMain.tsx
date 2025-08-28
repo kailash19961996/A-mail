@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
+import ProtectedRoute from '../components/ProtectedRoute';
 import HomePage from '../pages/HomePage';
 import ClientReviewPage from '../pages/validate/ClientReviewPage';
 import IdReviewPage from '../pages/validate/IdReviewPage';
@@ -17,7 +18,7 @@ import TemplatesConfigPage from '../pages/admin/TemplatesConfigPage';
 import LendersConfigPage from '../pages/admin/LendersConfigPage';
 import ActionsConfigPage from '../pages/admin/ActionsConfigPage';
 import UserManagement from '../pages/admin/UserManagement';
-import { dev_log } from '../utils/coreUtils';
+import { ROLES, dev_log } from '../utils/coreUtils';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -93,24 +94,108 @@ const AppMain: React.FC = () => {
               <Route path="/home" element={<HomePage />} />
               
               {/* Validation Screens */}
-              <Route path="/validate/client-review" element={<ClientReviewPage />} />
-              <Route path="/validate/id-review" element={<IdReviewPage />} />
+              <Route 
+                path="/validate/client-review" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.REVIEW_CLIENT}>
+                    <ClientReviewPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/validate/id-review" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.REVIEW_ID}>
+                    <IdReviewPage />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* Review Screens */}
-              <Route path="/review/sar" element={<SarReviewPage />} />
-              <Route path="/review/presub" element={<PreSubReviewPage />} />
-              <Route path="/review/floc" element={<FlocReviewPage />} />
+              <Route 
+                path="/review/sar" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.REVIEW_SAR}>
+                    <SarReviewPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/review/presub" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.REVIEW_PRE_SUB}>
+                    <PreSubReviewPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/review/floc" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.REVIEW_FLOC}>
+                    <FlocReviewPage />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* All Data Routes */}
-              <Route path="/all-clients" element={<AllClientsPage />} />
-              <Route path="/all-cases" element={<AllCasesPage />} />
+              <Route 
+                path="/all-clients" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.CLIENTS_ALL} fallbackPath="/home">
+                    <AllClientsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/all-cases" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.CASES_ALL} fallbackPath="/home">
+                    <AllCasesPage />
+                  </ProtectedRoute>
+                } 
+              />
               
-              {/* Admin Routes - Only Admin or SysAdmin */}
-              <Route path="/admin/config" element={<GeneralConfigPage />} />
-              <Route path="/admin/templates" element={<TemplatesConfigPage />} />
-              <Route path="/admin/lenders" element={<LendersConfigPage />} />
-              <Route path="/admin/actions" element={<ActionsConfigPage />} />
-              <Route path="/admin/users" element={<UserManagement />} />
+              {/* Admin Routes - Role-based access */}
+              <Route 
+                path="/admin/config" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.ADMIN_CONFIG}>
+                    <GeneralConfigPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/templates" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.ADMIN_TEMPLATES}>
+                    <TemplatesConfigPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/lenders" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.ADMIN_LENDERS}>
+                    <LendersConfigPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/actions" 
+                element={
+                  <ProtectedRoute requiredRole={ROLES.ADMIN_ACTIONS}>
+                    <ActionsConfigPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/users" 
+                element={
+                  <ProtectedRoute requiredRole="*">
+                    <UserManagement />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* Legacy Routes - Redirect to home */}
               <Route path="/cases" element={<Navigate to="/all-cases" replace />} />

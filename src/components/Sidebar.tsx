@@ -20,7 +20,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { dev_log } from '../utils/coreUtils';
+import { hasPermission, ROLES, dev_log } from '../utils/coreUtils';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -78,8 +78,18 @@ const Sidebar: React.FC = () => {
       label: 'Validation Screens',
       icon: 'CheckCircle',
       items: [
-        { path: '/validate/client-review', label: 'Client Review', icon: 'Users' },
-        { path: '/validate/id-review', label: 'ID Review', icon: 'Shield' }
+        { 
+          path: '/validate/client-review', 
+          label: 'Client Review', 
+          icon: 'Users',
+          userRoles: [ROLES.REVIEW_CLIENT]
+        },
+        { 
+          path: '/validate/id-review', 
+          label: 'ID Review', 
+          icon: 'Shield',
+          userRoles: [ROLES.REVIEW_ID]
+        }
       ]
     },
     
@@ -88,9 +98,24 @@ const Sidebar: React.FC = () => {
       label: 'Review Screens',
       icon: 'Eye',
       items: [
-        { path: '/review/sar', label: 'SAR Review', icon: 'FileCheck' },
-        { path: '/review/presub', label: 'PreSub Review', icon: 'FileCheck' },
-        { path: '/review/floc', label: 'FLOC Review', icon: 'FileCheck' }
+        { 
+          path: '/review/sar', 
+          label: 'SAR Review', 
+          icon: 'FileCheck',
+          userRoles: [ROLES.REVIEW_SAR]
+        },
+        { 
+          path: '/review/presub', 
+          label: 'PreSub Review', 
+          icon: 'FileCheck',
+          userRoles: [ROLES.REVIEW_PRE_SUB]
+        },
+        { 
+          path: '/review/floc', 
+          label: 'FLOC Review', 
+          icon: 'FileCheck',
+          userRoles: [ROLES.REVIEW_FLOC]
+        }
       ]
     },
     
@@ -99,23 +124,56 @@ const Sidebar: React.FC = () => {
       label: 'All Data',
       icon: 'Database',
       items: [
-        { path: '/all-clients', label: 'All Clients', icon: 'Users' },
-        { path: '/all-cases', label: 'All Cases', icon: 'Briefcase' }
+        { 
+          path: '/all-clients', 
+          label: 'All Clients', 
+          icon: 'Users',
+          userRoles: [ROLES.CLIENTS_ALL, ROLES.CLIENTS_ALL_VIEW_ONLY]
+        },
+        { 
+          path: '/all-cases', 
+          label: 'All Cases', 
+          icon: 'Briefcase',
+          userRoles: [ROLES.CASES_ALL, ROLES.CASES_ALL_VIEW_ONLY]
+        }
       ]
     },
     
-    // Admin Section - Only Admin or SysAdmin
+    // Admin Section - Role-based access
     {
       label: 'Admin',
       icon: 'Cog',
-      userTypes: ['Admin', 'SysAdmin'],
-      isAdminSection: true,
       items: [
-        { path: '/admin/config', label: 'General Config', icon: 'Settings' },
-        { path: '/admin/templates', label: 'Templates Config', icon: 'FileText' },
-        { path: '/admin/lenders', label: 'Lenders Config', icon: 'CreditCard' },
-        { path: '/admin/actions', label: 'Actions Config', icon: 'Zap' },
-        { path: '/admin/users', label: 'User Management', icon: 'Users' }
+        { 
+          path: '/admin/config', 
+          label: 'General Config', 
+          icon: 'Settings',
+          userRoles: [ROLES.ADMIN_CONFIG]
+        },
+        { 
+          path: '/admin/templates', 
+          label: 'Templates Config', 
+          icon: 'FileText',
+          userRoles: [ROLES.ADMIN_TEMPLATES]
+        },
+        { 
+          path: '/admin/lenders', 
+          label: 'Lenders Config', 
+          icon: 'CreditCard',
+          userRoles: [ROLES.ADMIN_LENDERS]
+        },
+        { 
+          path: '/admin/actions', 
+          label: 'Actions Config', 
+          icon: 'Zap',
+          userRoles: [ROLES.ADMIN_ACTIONS]
+        },
+        { 
+          path: '/admin/users', 
+          label: 'User Management', 
+          icon: 'Users',
+          userRoles: ['*'] // Only SysAdmin can access user management
+        }
       ]
     }
   ];
@@ -148,16 +206,13 @@ const Sidebar: React.FC = () => {
   const hasAccess = (item: NavigationItem | NavigationGroup): boolean => {
     if (!user) return false;
     
-    // SysAdmin has access to everything
-    if (user.user_type === 'SysAdmin') return true;
-    
-    // Check user type restrictions
-    if (item.userTypes && !item.userTypes.includes(user.user_type)) {
-      return false;
+    // Check if item has role restrictions
+    if (item.userRoles) {
+      return item.userRoles.some(role => hasPermission(user, role));
     }
     
-    // Check user role restrictions
-    if (item.userRoles && !item.userRoles.some(role => user.user_roles.includes(role))) {
+    // Check user type restrictions (legacy support)
+    if (item.userTypes && !item.userTypes.includes(user.user_type)) {
       return false;
     }
     

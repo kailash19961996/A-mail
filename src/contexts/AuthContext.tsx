@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
+  setAuthState: (userData: User) => void; // Add function to manually set auth state
 }
 
 // ============================================================================
@@ -100,7 +101,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsCheckingAuth(false);
       dev_log('🏁 Auth check completed');
     }
-  }, [isCheckingAuth]); // Add isCheckingAuth dependency
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Remove isCheckingAuth dependency to prevent infinite loops
 
   const logout = async (): Promise<void> => {
     dev_log('🚪 Starting logout process...');
@@ -136,6 +138,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Function to manually set auth state (used after successful OTP verification)
+  const setAuthState = useCallback((userData: User) => {
+    dev_log('🔧 Manually setting auth state:', userData);
+    setUser(userData);
+    setIsAuthenticated(true);
+    setIsLoading(false);
+  }, []);
+
   // ============================================================================
   // EFFECTS
   // ============================================================================
@@ -149,7 +159,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } else {
       dev_log('⏭️ Initial auth check already completed, skipping...');
     }
-  }, [checkAuth]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Remove checkAuth dependency to prevent infinite loops
 
   // ============================================================================
   // CONTEXT VALUE
@@ -161,6 +172,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     logout,
     checkAuth,
+    setAuthState,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

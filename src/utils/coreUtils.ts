@@ -48,4 +48,39 @@ export interface User {
   user_type: 'SysAdmin' | 'Admin' | 'CaseHandler';
   user_roles: string[];
   auth_status: string;
-} 
+}
+
+// Permission checking utility
+export const hasPermission = (user: User | null, requiredRole: string): boolean => {
+  if (!user) return false;
+  
+  // SysAdmin has access to everything
+  if (user.user_type === 'SysAdmin') return true;
+  
+  // Check if user has the specific role or wildcard access
+  return user.user_roles.includes(requiredRole) || user.user_roles.includes('*');
+};
+
+// Role constants for consistency
+export const ROLES = {
+  // Admin roles
+  ADMIN_TEMPLATES: 'AdminTemplates',
+  ADMIN_LENDERS: 'AdminLenders', 
+  ADMIN_ACTIONS: 'AdminActions',
+  ADMIN_CONFIG: 'AdminConfig',
+  
+  // Review roles
+  REVIEW_CLIENT: 'ReviewClient',
+  REVIEW_ID: 'ReviewID',
+  REVIEW_SAR: 'ReviewSAR',
+  REVIEW_PRE_SUB: 'ReviewPreSub',
+  REVIEW_FLOC: 'ReviewFLOC',
+  
+  // Case roles
+  CASES_ALL: 'CasesAll',
+  CASES_ALL_VIEW_ONLY: 'CasesAllViewOnly',
+  
+  // Client roles
+  CLIENTS_ALL: 'ClientsAll',
+  CLIENTS_ALL_VIEW_ONLY: 'ClientsAllViewOnly',
+} as const; 

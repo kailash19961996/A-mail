@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Smartphone, ArrowLeft, Clock, AlertCircle } from 'lucide-react';
 import Loader from '../components/Loader';
 import { createApiInstance, dev_log } from '../utils/coreUtils';
+import { useAuth } from '../contexts/AuthContext';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -11,6 +12,7 @@ import { createApiInstance, dev_log } from '../utils/coreUtils';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const api = createApiInstance();
+  const { setAuthState } = useAuth();
   
   // ============================================================================
   // STATE MANAGEMENT
@@ -167,8 +169,23 @@ const LoginPage: React.FC = () => {
         otp_method: otpData.otp_method
       });
       
-      dev_log('✅ OTP verification successful, navigating to home...');
-      // Success - navigate to home (AuthContext will handle the rest)
+      dev_log('✅ OTP verification successful, setting auth state and navigating to home...');
+      
+      // Create temporary user data - will be updated by auth-check API call
+      // This allows immediate authentication while the real user data loads
+      const userData = {
+        user_id: loginData!.user_id,
+        first_name: 'Loading...', // Will be updated by auth-check
+        display_name: 'Loading...', // Will be updated by auth-check
+        user_type: 'CaseHandler' as const, // Will be updated by auth-check
+        user_roles: ['*'], // Temporary wildcard access, will be updated by auth-check
+        auth_status: 'Valid Auth'
+      };
+      
+      dev_log('🔧 Setting temporary auth state for immediate access:', userData);
+      setAuthState(userData);
+      
+      // Navigate to home - auth-check will run and update user data
       navigate('/home');
     } catch (error: unknown) {
       dev_log('💥 OTP verification error:', error);
@@ -197,7 +214,7 @@ const LoginPage: React.FC = () => {
 
   // Timer countdown
   useEffect(() => {
-    let interval: ReturnType<typeof setTimeout>;
+    let interval: ReturnType<typeof setInterval>;
     
     if (mode === 'otp-input' && timeRemaining > 0) {
       interval = setInterval(() => {
@@ -214,8 +231,13 @@ const LoginPage: React.FC = () => {
       }, 1000);
     }
 
-    return () => clearInterval(interval);
-  }, [mode, timeRemaining]);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]); // Remove timeRemaining dependency to prevent interval recreation
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
