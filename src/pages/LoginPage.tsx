@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Smartphone, ArrowLeft, Clock, AlertCircle } from 'lucide-react';
-import Loader from '../components/Loader';
 import { createApiInstance, dev_log } from '../utils/coreUtils';
 import { useAuth } from '../contexts/AuthContext';
+import LoginPageView from './LoginPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -265,177 +264,38 @@ const LoginPage: React.FC = () => {
     handleError('');
   };
 
+  const handleBackToEmail = () => {
+    dev_log('🔙 Going back to email input');
+    setMode('email-input');
+    setLoginData(null);
+    setError('');
+  };
+
   // ============================================================================
   // RENDER
   // ============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <img
-              src="/logo-no-bg-500px.png"
-              alt="BlueLion Claims"
-              className="h-16 w-auto"
-            />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">BlueLion Claims Portal</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
-        </div>
-
-        {/* Error Messages */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-            <span className="text-red-700 text-sm">{error}</span>
-          </div>
-        )}
-
-        {/* Email Input Form */}
-        {mode === 'email-input' && (
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    emailError ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              {emailError && (
-                <p className="mt-1 text-sm text-red-600">{emailError}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || !isEmailValid}
-              className={`w-full py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                isEmailValid
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-              }`}
-            >
-              {isLoading ? <Loader size="sm" text="" /> : 'Continue'}
-            </button>
-          </form>
-        )}
-
-        {/* Auth Method Selection */}
-        {mode === 'auth-method-selection' && loginData && (
-          <div className="space-y-4">
-            <div className="text-center mb-4">
-              <p className="text-sm text-gray-600">
-                Choose how you'd like to authenticate
-              </p>
-            </div>
-
-            <button
-              onClick={() => handleOtpRequest(loginData.user_id, 'email')}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <Mail className="h-5 w-5 text-gray-600" />
-              <span>Use Email Address</span>
-            </button>
-
-            {loginData.sms_otp_num && (
-              <button
-                onClick={() => handleOtpRequest(loginData.user_id, 'sms')}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Smartphone className="h-5 w-5 text-gray-600" />
-                <span>Use SMS ({loginData.sms_otp_num})</span>
-              </button>
-            )}
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleRestart}
-                className="text-gray-600 hover:text-gray-700 text-sm font-medium flex items-center justify-center mx-auto"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Email Input
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* OTP Input Form */}
-        {mode === 'otp-input' && otpData && (
-          <form onSubmit={handleOtpSubmit} className="space-y-4">
-            <div className="text-center mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                {selectedAuthMethod === 'sms' 
-                  ? 'Enter the code sent to your mobile number'
-                  : 'Enter the code sent to your email address'
-                }
-              </p>
-              <div className="flex items-center justify-center text-sm text-gray-500">
-                <Clock className="h-4 w-4 mr-1" />
-                Code expires in: {formatTime(timeRemaining)}
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
-                Verification Code
-              </label>
-              <input
-                id="otp"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={otpCode}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  if (value.length <= 6) {
-                    setOtpCode(value);
-                  }
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-widest"
-                placeholder="Enter 6-digit code"
-                maxLength={6}
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || otpCode.length !== 6}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? <Loader size="sm" text="" /> : 'Verify Code'}
-            </button>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handleRestart}
-                className="text-gray-600 hover:text-gray-700 text-sm font-medium flex items-center justify-center mx-auto"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Start Over
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
+    <LoginPageView
+      mode={mode}
+      isLoading={isLoading}
+      error={error}
+      email={email}
+      onEmailChange={setEmail}
+      isEmailValid={isEmailValid}
+      emailError={emailError}
+      onEmailSubmit={handleEmailSubmit}
+      loginData={loginData}
+      onRequestOtp={handleOtpRequest}
+      onBackToEmail={handleBackToEmail}
+      otpData={otpData}
+      otpCode={otpCode}
+      onOtpChange={setOtpCode}
+      onOtpSubmit={handleOtpSubmit}
+      selectedAuthMethod={selectedAuthMethod}
+      timeRemaining={timeRemaining}
+      formatTime={formatTime}
+    />
   );
 };
 

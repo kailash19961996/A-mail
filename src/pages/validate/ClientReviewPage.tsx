@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { createApiInstance, dev_log } from '../../utils/coreUtils';
 import { CheckCircle, XCircle, AlertCircle, Loader } from 'lucide-react';
+import ClientReviewPageView from './ClientReviewPage-view';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -225,195 +226,41 @@ const ClientReviewPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Review</h1>
-        <p className="text-gray-600">Review and validate client information and signatures</p>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md flex items-center">
-          <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
-          <span className="text-red-700">{error}</span>
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="mb-6 flex space-x-4">
-        <button
-          onClick={handleApproveSelected}
-          disabled={selectedClients.size === 0 || isProcessing}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <CheckCircle className="h-5 w-5" />
-          <span>Approve Selected ({selectedClients.size})</span>
-        </button>
-        
-        <button
-          onClick={handleRejectSelected}
-          disabled={selectedClients.size === 0 || isProcessing}
-          className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <XCircle className="h-5 w-5" />
-          <span>Reject Selected ({selectedClients.size})</span>
-        </button>
-      </div>
-
-      {/* Clients Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <input
-                    type="checkbox"
-                    checked={selectedClients.size === clients.length && clients.length > 0}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  First Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date of Birth
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Signature
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {clients.map((client) => (
-                <tr key={client.client_id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={selectedClients.has(client.client_id)}
-                      onChange={(e) => handleSelectClient(client.client_id, e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {client.client_id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {client.first_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {client.last_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatDate(client.dob)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="min-h-[25px] flex items-center">
-                      {client.base64_sig && (
-                        <img
-                          src={`data:image/png;base64,${client.base64_sig}`}
-                          alt="Client Signature"
-                          className="max-h-16 max-w-32 object-contain border border-gray-200 rounded"
-                        />
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => handleApproveSingle(client.client_id)}
-                      disabled={isProcessing}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleRejectSingle(client.client_id)}
-                      disabled={isProcessing}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Reject
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {clients.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No clients found for review</p>
-          </div>
-        )}
-      </div>
-
-      {/* Reject Modal */}
-      {showRejectModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Select Rejection Reason</h3>
-              <div className="space-y-3">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="rejectionReason"
-                    value="Hoax Name"
-                    checked={rejectionReason === 'Hoax Name'}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    className="mr-2"
-                  />
-                  Hoax Name
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="rejectionReason"
-                    value="Invalid Signature"
-                    checked={rejectionReason === 'Invalid Signature'}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    className="mr-2"
-                  />
-                  Invalid Signature
-                </label>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowRejectModal(false);
-                    setRejectionReason('');
-                    setSelectedClients(new Set());
-                  }}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleRejectWithReason}
-                  disabled={!rejectionReason || isProcessing}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? 'Processing...' : 'Reject'}
-                </button>
+    <ClientReviewPageView
+      error={error}
+      isProcessing={isProcessing}
+      selectedCount={selectedClients.size}
+      clients={clients.map((c) => ({ client_id: c.client_id, first_name: c.first_name, last_name: c.last_name, dob: formatDate(c.dob), base64_sig: c.base64_sig }))}
+      onSelectAll={(checked) => handleSelectAll(checked)}
+      onSelect={(id, checked) => handleSelectClient(id, checked)}
+      onApproveSelected={handleApproveSelected}
+      onRejectSelected={handleRejectSelected}
+      renderRejectModal={() => (
+        showRejectModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Select Rejection Reason</h3>
+                <div className="space-y-3">
+                  <label className="flex items-center">
+                    <input type="radio" name="rejectionReason" value="Hoax Name" checked={rejectionReason === 'Hoax Name'} onChange={(e) => setRejectionReason(e.target.value)} className="mr-2" />
+                    Hoax Name
+                  </label>
+                  <label className="flex items-center">
+                    <input type="radio" name="rejectionReason" value="Invalid Signature" checked={rejectionReason === 'Invalid Signature'} onChange={(e) => setRejectionReason(e.target.value)} className="mr-2" />
+                    Invalid Signature
+                  </label>
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button onClick={() => { setShowRejectModal(false); setRejectionReason(''); setSelectedClients(new Set()); }} className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                  <button onClick={handleRejectWithReason} disabled={!rejectionReason || isProcessing} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">{isProcessing ? 'Processing...' : 'Reject'}</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )
       )}
-    </div>
+    />
   );
 };
 

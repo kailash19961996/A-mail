@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { hasPermission, ROLES, dev_log } from '../utils/coreUtils';
+import SidebarView, { SidebarViewGroup } from './Sidebar-view';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -237,78 +238,33 @@ const Sidebar: React.FC = () => {
   // RENDER
   // ============================================================================
 
-  return (
-    <div className={`bg-gray-800 text-white transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
-      <div className="flex flex-col h-full">
-        {/* Toggle Button */}
-        <div className="flex justify-end p-4">
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-md hover:bg-gray-700 transition-colors"
-          >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </button>
-        </div>
+  const viewGroups: SidebarViewGroup[] = filteredNavigationGroups.map((group) => ({
+    key: group.label,
+    label: group.label,
+    icon: getIconComponent(group.icon),
+    items: group.items.filter(hasAccess).map((item) => ({
+      key: item.path,
+      label: item.label,
+      icon: getIconComponent(item.icon),
+      active: location.pathname === item.path,
+      onClick: () => handleNavigation(item.path),
+    }))
+  }));
 
-        {/* Navigation Groups */}
-        <nav className="flex-1 px-4 space-y-6">
-          {filteredNavigationGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className="space-y-2">
-              {/* Group Header */}
-              {!isCollapsed && (
-                <div className="flex items-center space-x-2 px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  {getIconComponent(group.icon)}
-                  <span>{group.label}</span>
-                </div>
-              )}
-              
-              {/* Group Items */}
-              <ul className="space-y-1">
-                {group.items.filter(hasAccess).map((item) => {
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <li key={item.path}>
-                      <button
-                        onClick={() => handleNavigation(item.path)}
-                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
-                          isActive
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                        }`}
-                      >
-                        <span className="flex-shrink-0">
-                          {getIconComponent(item.icon)}
-                        </span>
-                        {!isCollapsed && (
-                          <span className="font-medium">{item.label}</span>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-        </nav>
-
-        {/* User Info (when expanded) */}
-        {!isCollapsed && user && (
-          <div className="p-4 border-t border-gray-700">
-            <div className="text-sm">
-              <p className="text-gray-300">Logged in as</p>
-              <p className="font-medium text-white truncate">{user.first_name}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {user.user_type}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {user.user_roles.slice(0, 3).join(', ')}
-                {user.user_roles.length > 3 && '...'}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+  const footer = user ? (
+    <div className="text-xs text-gray-700 leading-tight">
+      <div className="truncate"><span className="text-gray-600">Logged in as</span></div>
+      <div className="truncate"><span className="font-semibold text-gray-900">{user.first_name}</span> <span className="text-gray-600">-</span> <span className="capitalize">{user.user_type}</span></div>
     </div>
+  ) : null;
+
+  return (
+    <SidebarView
+      isCollapsed={isCollapsed}
+      onToggle={() => setIsCollapsed(!isCollapsed)}
+      groups={viewGroups}
+      footer={footer}
+    />
   );
 };
 

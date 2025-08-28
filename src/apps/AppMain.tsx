@@ -79,16 +79,28 @@ const AppMain: React.FC = () => {
   // ============================================================================
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader size="lg" text="Loading content..." />
-            </div>
-          ) : (
+    <div className="min-h-screen relative">
+      {/* Content Container */}
+      <div className="relative z-10 flex min-h-screen w-full p-4 gap-4">
+        {/* Sidebar Container */}
+        <div className="flex-shrink-0">
+          <Sidebar />
+        </div>
+        
+        {/* Main Content Container */}
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+          {/* Header Container */}
+          <div className="flex-shrink-0">
+            <Header />
+          </div>
+          
+          {/* Main Content */}
+          <main className="flex-1 overflow-y-auto rounded-2xl">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader size="lg" text="Loading content..." />
+              </div>
+            ) : (
             <Routes>
               {/* Main Routes - All Users */}
               <Route path="/home" element={<HomePage />} />
@@ -204,8 +216,9 @@ const AppMain: React.FC = () => {
               {/* Default Route */}
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
-          )}
-        </main>
+                      )}
+          </main>
+        </div>
       </div>
     </div>
   );
