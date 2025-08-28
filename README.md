@@ -284,6 +284,13 @@ The system is designed to support granular role-based permissions including:
 
 The application includes a comprehensive logging system using the `dev_log()` function from `coreUtils.ts`. This function:
 
+#### Duplicate API Call Prevention
+The system includes safeguards to prevent duplicate API calls:
+- **Auth Check Protection**: Prevents multiple simultaneous authentication checks
+- **Initial Auth Guard**: Ensures the initial auth check only runs once per session  
+- **API Instance Optimization**: Creates API instances only when needed to avoid recreation
+- **Render Optimization**: Simplified main.tsx to prevent multiple AuthContext recreations
+
 - **Only logs in beta/development mode** (`npm run dev:beta`)
 - **Silent in production mode** (`npm run dev` or `npm run build`)
 - **Provides detailed visibility** into application behavior

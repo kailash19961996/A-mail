@@ -75,8 +75,8 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      dev_log('📡 Making login API call to /login');
-      const response = await api.post('/login', { email });
+      dev_log('📡 Making login API call to /user-access/login');
+      const response = await api.post('/user-access/login', { email });
       const data = response.data;
       dev_log('✅ Login response received:', data);
       setLoginData(data);
@@ -122,8 +122,8 @@ const LoginPage: React.FC = () => {
     setSelectedAuthMethod(method);
 
     try {
-      dev_log('📡 Making OTP request API call to /otp-request');
-      const response = await api.post('/otp-request', { user_id: userId, otp_method: method });
+      dev_log('📡 Making OTP request API call to /user-access/otp-request');
+      const response = await api.post('/user-access/otp-request', { user_id: userId, otp_method: method });
       const data = response.data;
       dev_log('✅ OTP request response received:', data);
       setOtpData(data);
@@ -160,8 +160,8 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      dev_log('📡 Making OTP verification API call to /otp-verify');
-      await api.post('/otp-verify', {
+      dev_log('📡 Making OTP verification API call to /user-access/otp-verify');
+      await api.post('/user-access/otp-verify', {
         user_id: otpData.user_id,
         otp_code: otpCode,
         otp_method: otpData.otp_method

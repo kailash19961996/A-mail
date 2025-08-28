@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createApiInstance, type User, dev_log } from '../utils/coreUtils';
@@ -33,7 +33,6 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
-  const api = createApiInstance();
   
   // ============================================================================
   // STATE MANAGEMENT
@@ -42,17 +41,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false); // Prevent multiple simultaneous auth checks
+  const hasInitialAuthCheck = useRef(false); // Track if initial auth check has run
 
   // ============================================================================
   // AUTHENTICATION FUNCTIONS
   // ============================================================================
 
   const checkAuth = useCallback(async (): Promise<boolean> => {
+    // Prevent multiple simultaneous auth checks
+    if (isCheckingAuth) {
+      dev_log('⏸️ Auth check already in progress, skipping...');
+      return false;
+    }
+    
     dev_log('🔐 Starting authentication check...');
+    setIsCheckingAuth(true);
+    
     try {
+      // Create API instance only when needed to avoid recreation
+      const api = createApiInstance();
+      
       // Check with API for authentication status
-      dev_log('📡 Making API call to /auth-check');
-      const response = await api.get('/auth-check');
+      dev_log('📡 Making API call to /user-access/auth-check');
+      const response = await api.get('/user-access/auth-check');
       
       dev_log('✅ Auth check response:', response.data);
       
@@ -85,15 +97,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     } finally {
       setIsLoading(false);
+      setIsCheckingAuth(false);
       dev_log('🏁 Auth check completed');
     }
-  }, [api]);
+  }, [isCheckingAuth]); // Add isCheckingAuth dependency
 
   const logout = async (): Promise<void> => {
     dev_log('🚪 Starting logout process...');
     try {
-      dev_log('📡 Making API call to /logout');
-      await api.post('/logout', {});
+      // Create API instance only when needed to avoid recreation
+      const api = createApiInstance();
+      
+      dev_log('📡 Making API call to /user-access/logout');
+      await api.post('/user-access/logout', {});
       dev_log('✅ Logout API call successful');
     } catch (error: unknown) {
       dev_log('💥 Logout API error:', error);
@@ -124,10 +140,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // EFFECTS
   // ============================================================================
 
-  // Run auth check immediately when context is created
+  // Run auth check immediately when context is created (only once)
   useEffect(() => {
-    dev_log('🚀 AuthContext created, running initial auth check...');
-    checkAuth();
+    if (!hasInitialAuthCheck.current) {
+      dev_log('🚀 AuthContext created, running initial auth check...');
+      hasInitialAuthCheck.current = true;
+      checkAuth();
+    } else {
+      dev_log('⏭️ Initial auth check already completed, skipping...');
+    }
   }, [checkAuth]);
 
   // ============================================================================
