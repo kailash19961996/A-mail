@@ -248,16 +248,7 @@ const LoginPage: React.FC = () => {
   // ERROR HANDLING & NAVIGATION
   // ============================================================================
 
-  const handleError = (errorMessage: string) => {
-    dev_log('🚫 Handling error:', errorMessage);
-    setError(errorMessage);
-    setMode('email-input');
-    setEmail('');
-    setOtpCode('');
-    setLoginData(null);
-    setOtpData(null);
-    setTimeRemaining(0);
-  };
+
 
 
 
