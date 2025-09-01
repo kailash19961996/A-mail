@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { createApiInstance, dev_log } from '../../utils/coreUtils';
-import { CheckCircle, XCircle, AlertCircle, Loader } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import ClientReviewPageView from './ClientReviewPage-view';
 
 // ============================================================================
@@ -189,22 +189,7 @@ const ClientReviewPage: React.FC = () => {
     submitClientAction(payload);
   };
 
-  const handleApproveSingle = (clientId: number) => {
-    dev_log('✅ Approving single client:', { clientId });
-    
-    const payload: ApprovalPayload = {
-      client_ids: [clientId],
-      action: 'approve'
-    };
-    
-    submitClientAction(payload);
-  };
 
-  const handleRejectSingle = (clientId: number) => {
-    dev_log('❌ Rejecting single client:', { clientId });
-    setSelectedClients(new Set([clientId]));
-    setShowRejectModal(true);
-  };
 
   const formatDate = (timestamp: number): string => {
     return new Date(timestamp * 1000).toLocaleDateString('en-GB');

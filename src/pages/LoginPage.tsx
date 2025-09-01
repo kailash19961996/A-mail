@@ -259,10 +259,7 @@ const LoginPage: React.FC = () => {
     setTimeRemaining(0);
   };
 
-  const handleRestart = () => {
-    dev_log('🔄 Restarting login process');
-    handleError('');
-  };
+
 
   const handleBackToEmail = () => {
     dev_log('🔙 Going back to email input');

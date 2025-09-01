@@ -6,8 +6,6 @@ import {
   Users, 
   Settings, 
   FileText, 
-  ChevronLeft, 
-  ChevronRight,
   Building2,
   Shield,
   Eye,
@@ -21,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { hasPermission, ROLES, dev_log } from '../utils/coreUtils';
-import SidebarView, { SidebarViewGroup } from './Sidebar-view';
+import SidebarView, { type SidebarViewGroup } from './Sidebar-view';
 
 // ============================================================================
 // TYPES & INTERFACES
