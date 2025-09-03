@@ -259,7 +259,7 @@ const Sidebar: React.FC = () => {
       <div className="text-center">
         <div className="truncate text-gray-500 text-[11px]">Logged in as</div>
         <div className="truncate">
-          <span className="font-semibold text-gray-900">{user.first_name}</span>
+          <span className="font-semibold text-gray-900">{user.display_name || user.first_name}</span>
           <span className="text-gray-400 mx-1">•</span>
           <span className="capitalize text-gray-600">{user.user_type}</span>
         </div>

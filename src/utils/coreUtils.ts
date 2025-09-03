@@ -45,6 +45,7 @@ export interface User {
   user_id: string;
   first_name: string;
   display_name: string;
+  email: string; // Email address used for ticket assignment
   user_type: 'SysAdmin' | 'Admin' | 'CaseHandler';
   user_roles: string[];
   auth_status: string;

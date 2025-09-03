@@ -11,7 +11,7 @@ import LoginPageView from '../pages-styling/LoginPage-view';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const api = createApiInstance();
-  const { setAuthState } = useAuth();
+  const { setAuthState, checkAuth } = useAuth();
   
   // ============================================================================
   // STATE MANAGEMENT
@@ -176,6 +176,7 @@ const LoginPage: React.FC = () => {
         user_id: loginData!.user_id,
         first_name: 'Loading...', // Will be updated by auth-check
         display_name: 'Loading...', // Will be updated by auth-check
+        email: email, // Use the email from login for ticket assignment
         user_type: 'CaseHandler' as const, // Will be updated by auth-check
         user_roles: ['*'], // Temporary wildcard access, will be updated by auth-check
         auth_status: 'Valid Auth'
@@ -184,8 +185,10 @@ const LoginPage: React.FC = () => {
       dev_log('🔧 Setting temporary auth state for immediate access:', userData);
       setAuthState(userData);
       
-      // Navigate to home - auth-check will run and update user data
+      // Navigate to home and immediately refresh the real user details
       navigate('/home');
+      // Fire and forget: refresh user in background so Sidebar shows correct name
+      checkAuth().catch(() => {});
     } catch (error: unknown) {
       dev_log('💥 OTP verification error:', error);
       if (error && typeof error === 'object' && 'response' in error) {

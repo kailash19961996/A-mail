@@ -173,22 +173,19 @@ header .assign-toggle-btn {
   flex-shrink: 0 !important;
 }
 
-/* Sidebar button overrides - prevent CSS conflicts */
-.glass-card button,
+/* Sidebar button overrides - prevent CSS conflicts (scope ONLY to sidebar buttons) */
 .sidebar-nav-btn {
   background: transparent !important;
   background-color: transparent !important;
 }
 
-.glass-card button:hover,
 .sidebar-nav-btn:hover {
   background: rgba(255, 255, 255, 0.1) !important;
   background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Override any conflicting background utilities */
-.sidebar-nav-btn[class*="bg-"],
-.glass-card button[class*="bg-"] {
+.sidebar-nav-btn[class*="bg-"] {
   background: transparent !important;
   background-color: transparent !important;
 }

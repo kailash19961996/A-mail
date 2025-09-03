@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { Ticket, TicketStatus, Attachment } from '../types/ticket'
 import { apiService } from '../services/api'
+import { useAuth } from '../../contexts/AuthContext'
 
 type Props = {
   ticket?: Ticket
@@ -12,13 +13,7 @@ type Props = {
   onTicketUpdate?: (ticketId: string, updates?: Partial<Ticket>) => Promise<void>
 }
 
-// TODO: INTEGRATION REQUIRED - Replace with real authentication system  
-// This should come from your authentication provider (Auth0, Cognito, etc.)
-const CURRENT_USER = {
-  id: 'agent1@bluelionlaw.com',
-  name: 'Agent Smith',
-  email: 'agent1@bluelionlaw.com'
-}
+// Get current user from application auth context
 
 // UI color scheme constants
 const UI_COLORS = {
@@ -42,11 +37,12 @@ const UI_COLORS = {
 }
 
 export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, onTicketUpdate }: Props) {
+  const { user } = useAuth()
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
   const [ticketGroupDropdownOpen, setTicketGroupDropdownOpen] = useState(false)
   const [attachmentViewer, setAttachmentViewer] = useState<Attachment | null>(null)
   const [messageText, setMessageText] = useState('')
-  const [isAssigned, setIsAssigned] = useState(ticket?.assigned_to === CURRENT_USER.id)
+  const [isAssigned, setIsAssigned] = useState(ticket?.assigned_to === (user?.email || ''))
   const [isSending, setIsSending] = useState(false)
   const [currentStatus, setCurrentStatus] = useState<TicketStatus>(ticket?.status || 'OPEN')
   const [currentTicketGroup, setCurrentTicketGroup] = useState<'Ops Team' | 'Tech' | 'Litigation' | 'assign group'>('assign group')
@@ -65,7 +61,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
       })
       setCurrentStatus(ticket.status)
       setCurrentTicketGroup(ticket.ticket_group as 'Ops Team' | 'Tech' | 'Litigation' || 'assign group')
-      setIsAssigned(ticket.assigned_to === CURRENT_USER.id)
+      setIsAssigned(ticket.assigned_to === (user?.email || ''))
     }
   }, [ticket])
   
@@ -168,7 +164,8 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
   const handleAssignToggle = async () => {
     if (!ticket) return
     
-    const newAssignment = isAssigned ? 'UNASSIGNED' : CURRENT_USER.id
+    const currentUserEmail = user?.email || ''
+    const newAssignment = isAssigned ? 'UNASSIGNED' : currentUserEmail
     const newStatus = isAssigned ? 'OPEN' : 'IN_PROGRESS' // Auto-set status based on assignment
     
     // Optimistic update - update UI immediately
@@ -241,14 +238,14 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
       console.log('📤 [MESSAGE] Sending message:', {
         ticketId: ticket.ticket_id,
         messageLength: messageToSend.length,
-        sender: CURRENT_USER.id,
+        sender: user?.email || 'UNKNOWN_USER',
         timestamp: new Date().toISOString()
       })
       
       const result = await apiService.addMessage(ticket.ticket_id, {
         text: messageToSend,
         created_by_type: 'AGENT',
-        created_by_id: CURRENT_USER.id,
+        created_by_id: user?.email || 'UNKNOWN_USER',
         created_source: 'Internal CRM',
         attachments: []
       })

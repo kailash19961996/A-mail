@@ -6,14 +6,11 @@ import { AssistantPanel } from './components/AssistantPanel'
 import { apiService, isErrorResponse } from './services/api'
 import type { Ticket, StatusKey } from './types/ticket'
 import './styles/animations.css'
+import { useAuth } from '../contexts/AuthContext'
 
-const CURRENT_USER = {
-  id: 'agent1@bluelionlaw.com',
-  name: 'Agent Smith', 
-  email: 'agent1@bluelionlaw.com'
-}
 
 export default function TicketsApp() {
+  const { user } = useAuth()
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -71,28 +68,30 @@ export default function TicketsApp() {
 
   useEffect(() => { loadTickets() }, [])
 
+  const currentUserEmail = user?.email || ''
+
   const counts = useMemo(() => {
     const open = tickets.filter(t => t.assigned_to === 'UNASSIGNED' || !t.assigned_to).length
-    const inProgress = tickets.filter(t => t.assigned_to === CURRENT_USER.id && t.status === 'IN_PROGRESS').length
-    const onHold = tickets.filter(t => t.assigned_to === CURRENT_USER.id && t.status === 'ON_HOLD').length
-    const resolved = tickets.filter(t => t.assigned_to === CURRENT_USER.id && t.status === 'RESOLVED').length
+    const inProgress = tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'IN_PROGRESS').length
+    const onHold = tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'ON_HOLD').length
+    const resolved = tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'RESOLVED').length
     return { OPEN: open, IN_PROGRESS: inProgress, ON_HOLD: onHold, RESOLVED: resolved }
-  }, [tickets])
+  }, [tickets, currentUserEmail])
 
   const filtered = useMemo(() => {
     switch (activeStatus) {
       case 'OPEN':
         return tickets.filter(t => t.assigned_to === 'UNASSIGNED' || !t.assigned_to)
       case 'IN_PROGRESS':
-        return tickets.filter(t => t.assigned_to === CURRENT_USER.id && t.status === 'IN_PROGRESS')
+        return tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'IN_PROGRESS')
       case 'ON_HOLD':
-        return tickets.filter(t => t.assigned_to === CURRENT_USER.id && t.status === 'ON_HOLD')
+        return tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'ON_HOLD')
       case 'RESOLVED':
-        return tickets.filter(t => t.assigned_to === CURRENT_USER.id && t.status === 'RESOLVED')
+        return tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'RESOLVED')
       default:
         return []
     }
-  }, [tickets, activeStatus])
+  }, [tickets, activeStatus, currentUserEmail])
   
   const activeTicket = tickets.find(ticket => ticket.ticket_id === activeTicketId)
 
