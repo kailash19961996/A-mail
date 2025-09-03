@@ -1,12 +1,12 @@
 import React from 'react';
-import SarReviewPageView from './SarReviewPage-view';
+import LendersConfigPageView from '../../pages-styling/admin/LendersConfigPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const SarReviewPage: React.FC = () => {
-  return <SarReviewPageView />;
+const LendersConfigPage: React.FC = () => {
+  return <LendersConfigPageView />;
 };
 
-export default SarReviewPage; 
+export default LendersConfigPage; 

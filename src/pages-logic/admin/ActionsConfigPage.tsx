@@ -1,12 +1,12 @@
 import React from 'react';
-import AllClientsPageView from './AllClientsPage-view';
+import ActionsConfigPageView from '../../pages-styling/admin/ActionsConfigPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const AllClientsPage: React.FC = () => {
-  return <AllClientsPageView />;
+const ActionsConfigPage: React.FC = () => {
+  return <ActionsConfigPageView />;
 };
 
-export default AllClientsPage; 
+export default ActionsConfigPage; 

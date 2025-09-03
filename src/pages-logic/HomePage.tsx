@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { dev_log } from '../utils/coreUtils';
-import HomePageView from './HomePage-view';
+import HomePageView from '../pages-styling/HomePage-view';
 
 // ============================================================================
 // MAIN COMPONENT

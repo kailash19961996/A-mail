@@ -1,12 +1,12 @@
 import React from 'react';
-import LendersConfigPageView from './LendersConfigPage-view';
+import FlocReviewPageView from '../../pages-styling/review/FlocReviewPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const LendersConfigPage: React.FC = () => {
-  return <LendersConfigPageView />;
+const FlocReviewPage: React.FC = () => {
+  return <FlocReviewPageView />;
 };
 
-export default LendersConfigPage; 
+export default FlocReviewPage; 

@@ -1,12 +1,12 @@
 import React from 'react';
-import ActionsConfigPageView from './ActionsConfigPage-view';
+import PreSubReviewPageView from '../../pages-styling/review/PreSubReviewPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const ActionsConfigPage: React.FC = () => {
-  return <ActionsConfigPageView />;
+const PreSubReviewPage: React.FC = () => {
+  return <PreSubReviewPageView />;
 };
 
-export default ActionsConfigPage; 
+export default PreSubReviewPage; 

@@ -1,12 +1,12 @@
 import React from 'react';
-import FlocReviewPageView from './FlocReviewPage-view';
+import SarReviewPageView from '../../pages-styling/review/SarReviewPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const FlocReviewPage: React.FC = () => {
-  return <FlocReviewPageView />;
+const SarReviewPage: React.FC = () => {
+  return <SarReviewPageView />;
 };
 
-export default FlocReviewPage; 
+export default SarReviewPage; 

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { dev_log } from '../../utils/coreUtils';
-import GeneralConfigPageView from './GeneralConfigPage-view';
+import GeneralConfigPageView from '../../pages-styling/admin/GeneralConfigPage-view';
 
 // ============================================================================
 // MAIN COMPONENT

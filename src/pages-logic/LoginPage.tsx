@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createApiInstance, dev_log } from '../utils/coreUtils';
 import { useAuth } from '../contexts/AuthContext';
-import LoginPageView from './LoginPage-view';
+import LoginPageView from '../pages-styling/LoginPage-view';
 
 // ============================================================================
 // MAIN COMPONENT

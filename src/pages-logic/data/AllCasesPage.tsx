@@ -1,12 +1,12 @@
 import React from 'react';
-import PreSubReviewPageView from './PreSubReviewPage-view';
+import AllCasesPageView from '../../pages-styling/data/AllCasesPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const PreSubReviewPage: React.FC = () => {
-  return <PreSubReviewPageView />;
+const AllCasesPage: React.FC = () => {
+  return <AllCasesPageView />;
 };
 
-export default PreSubReviewPage; 
+export default AllCasesPage; 

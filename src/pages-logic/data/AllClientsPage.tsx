@@ -1,12 +1,12 @@
 import React from 'react';
-import IdReviewPageView from './IdReviewPage-view';
+import AllClientsPageView from '../../pages-styling/data/AllClientsPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const IdReviewPage: React.FC = () => {
-  return <IdReviewPageView />;
+const AllClientsPage: React.FC = () => {
+  return <AllClientsPageView />;
 };
 
-export default IdReviewPage; 
+export default AllClientsPage; 

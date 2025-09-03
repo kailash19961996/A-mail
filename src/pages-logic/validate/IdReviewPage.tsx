@@ -1,12 +1,12 @@
 import React from 'react';
-import AllCasesPageView from './AllCasesPage-view';
+import IdReviewPageView from '../../pages-styling/validate/IdReviewPage-view';
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-const AllCasesPage: React.FC = () => {
-  return <AllCasesPageView />;
+const IdReviewPage: React.FC = () => {
+  return <IdReviewPageView />;
 };
 
-export default AllCasesPage; 
+export default IdReviewPage;

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { createApiInstance, dev_log } from '../../utils/coreUtils';
 import { Loader } from 'lucide-react';
-import ClientReviewPageView from './ClientReviewPage-view';
+import ClientReviewPageView from '../../pages-styling/validate/ClientReviewPage-view';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -189,6 +189,26 @@ const ClientReviewPage: React.FC = () => {
     submitClientAction(payload);
   };
 
+  const handleApproveIndividual = (clientId: number) => {
+    dev_log('✅ Approving individual client:', { clientId });
+    
+    const payload: ApprovalPayload = {
+      client_ids: [clientId],
+      action: 'approve'
+    };
+    
+    submitClientAction(payload);
+  };
+
+  const handleRejectIndividual = (clientId: number) => {
+    dev_log('❌ Rejecting individual client:', { clientId });
+    
+    // For individual rejections, we'll use a simple approach
+    // Set the selected client and show the modal
+    setSelectedClients(new Set([clientId]));
+    setShowRejectModal(true);
+  };
+
 
 
   const formatDate = (timestamp: number): string => {
@@ -220,6 +240,8 @@ const ClientReviewPage: React.FC = () => {
       onSelect={(id, checked) => handleSelectClient(id, checked)}
       onApproveSelected={handleApproveSelected}
       onRejectSelected={handleRejectSelected}
+      onApproveIndividual={handleApproveIndividual}
+      onRejectIndividual={handleRejectIndividual}
       renderRejectModal={() => (
         showRejectModal && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 /* Loader no longer used directly in container; remains in view */
 import { dev_log } from '../../utils/coreUtils';
-import UserManagementView from './UserManagement-view';
+import UserManagementView from '../../pages-styling/admin/UserManagement-view';
 
 // ============================================================================
 // TYPES & INTERFACES

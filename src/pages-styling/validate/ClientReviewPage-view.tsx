@@ -18,6 +18,8 @@ interface ClientReviewPageViewProps {
   onSelect: (clientId: number, checked: boolean) => void;
   onApproveSelected: () => void;
   onRejectSelected: () => void;
+  onApproveIndividual: (clientId: number) => void;
+  onRejectIndividual: (clientId: number) => void;
   renderRejectModal: () => React.ReactNode;
 }
 
@@ -30,6 +32,8 @@ const ClientReviewPageView: React.FC<ClientReviewPageViewProps> = ({
   onSelect,
   onApproveSelected,
   onRejectSelected,
+  onApproveIndividual,
+  onRejectIndividual,
   renderRejectModal,
 }) => {
   return (
@@ -91,8 +95,20 @@ const ClientReviewPageView: React.FC<ClientReviewPageViewProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200">Approve</button>
-                    <button className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200">Reject</button>
+                    <button 
+                      onClick={() => onApproveIndividual(client.client_id)}
+                      disabled={isProcessing}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Approve
+                    </button>
+                    <button 
+                      onClick={() => onRejectIndividual(client.client_id)}
+                      disabled={isProcessing}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Reject
+                    </button>
                   </td>
                 </tr>
               ))}
