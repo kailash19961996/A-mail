@@ -15,7 +15,9 @@ import {
   Cog,
   FileCheck,
   CreditCard,
-  Zap
+  Zap,
+  MessageSquare,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { hasPermission, ROLES, dev_log } from '../utils/coreUtils';
@@ -48,7 +50,7 @@ interface NavigationGroup {
 // ============================================================================
 
 const Sidebar: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -68,7 +70,8 @@ const Sidebar: React.FC = () => {
       label: 'Main',
       icon: 'Home',
       items: [
-        { path: '/home', label: 'Home', icon: 'Home' }
+        { path: '/home', label: 'Home', icon: 'Home' },
+        { path: '/tickets', label: 'Tickets', icon: 'MessageSquare' }
       ]
     },
     
@@ -197,7 +200,9 @@ const Sidebar: React.FC = () => {
       Cog: <Cog className="h-5 w-5" />,
       FileCheck: <FileCheck className="h-5 w-5" />,
       CreditCard: <CreditCard className="h-5 w-5" />,
-      Zap: <Zap className="h-5 w-5" />
+      Zap: <Zap className="h-5 w-5" />,
+      MessageSquare: <MessageSquare className="h-5 w-5" />,
+      LogOut: <LogOut className="h-5 w-5" />
     };
     return iconMap[iconName] || <Home className="h-5 w-5" />;
   };
@@ -250,9 +255,24 @@ const Sidebar: React.FC = () => {
   }));
 
   const footer = user ? (
-    <div className="text-xs text-gray-700 leading-tight">
-      <div className="truncate"><span className="text-gray-600">Logged in as</span></div>
-      <div className="truncate"><span className="font-semibold text-gray-900">{user.first_name}</span> <span className="text-gray-600">-</span> <span className="capitalize">{user.user_type}</span></div>
+    <div className="text-xs text-gray-700 leading-tight space-y-2">
+      <div className="text-center">
+        <div className="truncate text-gray-500 text-[11px]">Logged in as</div>
+        <div className="truncate">
+          <span className="font-semibold text-gray-900">{user.first_name}</span>
+          <span className="text-gray-400 mx-1">•</span>
+          <span className="capitalize text-gray-600">{user.user_type}</span>
+        </div>
+      </div>
+      <div className="pt-1">
+        <button
+          onClick={() => logout()}
+          className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200 text-xs font-medium border border-red-100 hover:border-red-200"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Logout</span>
+        </button>
+      </div>
     </div>
   ) : null;
 
@@ -261,6 +281,7 @@ const Sidebar: React.FC = () => {
       isCollapsed={isCollapsed}
       onToggle={() => setIsCollapsed(!isCollapsed)}
       groups={viewGroups}
+      itemSpacingPx={11}
       footer={footer}
     />
   );

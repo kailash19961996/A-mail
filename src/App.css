@@ -1,9 +1,10 @@
-/* Basic button styles */
+/* Basic button styles - minimal to prevent conflicts */
 button {
   cursor: pointer;
   font-family: inherit;
   border: none;
   outline: none;
+  background: transparent; /* Default transparent */
 }
 
 button:disabled {

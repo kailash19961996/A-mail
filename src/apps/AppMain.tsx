@@ -19,6 +19,7 @@ import LendersConfigPage from '../pages-logic/admin/LendersConfigPage';
 import ActionsConfigPage from '../pages-logic/admin/ActionsConfigPage';
 import UserManagement from '../pages-logic/admin/UserManagement';
 import { ROLES, dev_log } from '../utils/coreUtils';
+import TicketsApp from '../tickets/TicketsApp';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -53,8 +54,15 @@ const AppMain: React.FC = () => {
       setIsLoading(false);
     };
 
+    // Skip excessive auth checks if already authenticated and user exists
+    if (user && isAuthenticated) {
+      dev_log('✅ User already authenticated, skipping auth check for route:', location.pathname);
+      setIsLoading(false);
+      return;
+    }
+
     verifyAuth();
-  }, [location.pathname, checkAuth, navigate]);
+  }, [location.pathname, checkAuth, navigate, user, isAuthenticated]);
 
   // Redirect to home if accessing root
   useEffect(() => {
@@ -89,19 +97,23 @@ const AppMain: React.FC = () => {
         
         {/* Main Content Container */}
         <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-          {/* Header Container */}
-          <div className="flex-shrink-0">
-            <Header />
-          </div>
+          {/* Header Container - hidden on /tickets */}
+          {location.pathname !== '/tickets' && (
+            <div className="flex-shrink-0">
+              <Header />
+            </div>
+          )}
           
           {/* Main Content */}
-          <main className="flex-1 overflow-y-auto rounded-2xl">
+          <main className={`flex-1 ${location.pathname === '/tickets' ? 'overflow-hidden' : 'overflow-y-auto rounded-2xl'}`}>
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <Loader size="lg" text="Loading content..." />
               </div>
             ) : (
             <Routes>
+              {/* Tickets Route - no header */}
+              <Route path="/tickets" element={<TicketsApp />} />
               {/* Main Routes - All Users */}
               <Route path="/home" element={<HomePage />} />
               

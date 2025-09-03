@@ -1,0 +1,57 @@
+/* WhatsApp-like smooth animations */
+.animate-in {
+  animation: slideInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Smooth message transitions */
+.messages-container {
+  scroll-behavior: smooth;
+}
+
+/* Smooth status/assignment transitions */
+.status-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Button hover effects */
+.btn-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+}
+
+.btn-smooth:hover {
+  transform: translateY(-1px) translateZ(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-smooth:active {
+  transform: translateY(0) translateZ(0);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dropdown animations */
+.dropdown-enter {
+  animation: dropdownSlide 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
