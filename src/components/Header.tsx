@@ -28,7 +28,7 @@ const Header: React.FC = () => {
   // ============================================================================
 
   return (
-    <HeaderView userFirstName={user?.first_name} onLogout={() => {}} />
+    <HeaderView userFirstName={user?.first_name} onLogout={handleLogout} />
   );
 };
 
