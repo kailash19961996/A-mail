@@ -79,6 +79,12 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             })
         
         # Route requests - Order matters! More specific routes first
+        # AI chat endpoints
+        if path == '/ai/chat' and method == 'POST':
+            return handle_ai_chat(body)
+        if path == '/ai/reset' and method == 'POST':
+            return handle_ai_reset(body)
+
         if path == '/tickets':
             if method == 'GET':
                 return handle_get_tickets(query_parameters)
@@ -152,6 +158,40 @@ def handle_get_ticket_messages(ticket_id: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error getting messages for ticket {ticket_id}: {str(e)}")
         return create_response(500, error="Failed to retrieve ticket messages")
+
+def handle_ai_chat(body: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle POST /ai/chat - proxy to AI conversation with session memory"""
+    try:
+        from ai import chat as ai_chat
+        
+        required_fields = ['session_id', 'message']
+        missing = [f for f in required_fields if f not in body]
+        if missing:
+            return create_response(400, error=f"Missing required fields: {', '.join(missing)}")
+
+        session_id = str(body['session_id'])
+        message = str(body['message'])
+        context_seed = body.get('context')  # optional
+
+        result = ai_chat(session_id=session_id, input_text=message, system_context=context_seed)
+        return create_response(200, result)
+    except Exception as e:
+        logger.error(f"Error in AI chat: {str(e)}")
+        return create_response(500, error=f"AI error: {str(e)}")
+
+def handle_ai_reset(body: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle POST /ai/reset - clears a session"""
+    try:
+        from ai import reset_session as ai_reset
+        
+        session_id = body.get('session_id')
+        if not session_id:
+            return create_response(400, error="Missing required field: session_id")
+        ai_reset(str(session_id))
+        return create_response(200, {"reset": True})
+    except Exception as e:
+        logger.error(f"Error in AI reset: {str(e)}")
+        return create_response(500, error=f"AI reset error: {str(e)}")
 
 def handle_create_ticket(body: Dict[str, Any]) -> Dict[str, Any]:
     """Handle POST /tickets - create new ticket"""

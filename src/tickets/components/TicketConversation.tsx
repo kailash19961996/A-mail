@@ -6,6 +6,58 @@ import type { Ticket, TicketStatus, Attachment } from '../types/ticket'
 import { apiService } from '../services/api'
 import { useAuth } from '../../contexts/AuthContext'
 
+// PendingMessage component with countdown timer
+function PendingMessage({ message, onUndo }: { message: string, onUndo: () => void }) {
+  const [countdown, setCountdown] = useState(5)
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    
+    return () => clearInterval(timer)
+  }, [])
+  
+  return (
+    <div 
+      className="flex w-full justify-end message-slide-in"
+      style={{ 
+        animation: 'slideInFromBottom 0.3s ease-out',
+        transform: 'translateY(0)'
+      }}
+    >
+      <div
+        className="rounded-2xl px-3 py-2 text-xs shadow-soft transform transition-all duration-300 relative"
+        style={{ 
+          maxWidth: '66%',
+          background: 'rgba(239, 246, 255, 0.9)', // Clean light blue
+          color: '#1f2937', // Dark grey for readability
+          border: '1px solid rgba(219, 234, 254, 0.8)'
+        }}
+      >
+        <div className="whitespace-pre-wrap">{message}</div>
+        <div className="mt-1 flex justify-end">
+          <button
+            onClick={onUndo}
+            className="text-xs px-2 py-1 rounded bg-blue-100 hover:bg-blue-200 text-blue-700 transition-colors duration-200 font-medium"
+            style={{ 
+              fontSize: '10px'
+            }}
+          >
+            Undo {countdown}s
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type Props = {
   ticket?: Ticket
   assistantOpen: boolean
@@ -46,6 +98,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
   const [isSending, setIsSending] = useState(false)
   const [currentStatus, setCurrentStatus] = useState<TicketStatus>(ticket?.status || 'OPEN')
   const [currentTicketGroup, setCurrentTicketGroup] = useState<'Ops Team' | 'Tech' | 'Litigation' | 'assign group'>('assign group')
+  const [pendingMessage, setPendingMessage] = useState<{text: string, id: string, timer: number | null} | null>(null)
 
 
 
@@ -231,14 +284,74 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
     if (!ticket || !messageText.trim() || !isAssigned) return
     
     const messageToSend = messageText.trim()
+    const messageId = `pending-${Date.now()}`
     setMessageText('')
+    
+    console.log('⏳ [MESSAGE] Creating pending message (NOT sending to database yet):', {
+      ticketId: ticket.ticket_id,
+      messageText: messageToSend,
+      pendingId: messageId,
+      currentMessageCount: ticket.message_count,
+      willSendIn: '5 seconds'
+    })
+    
+    // Create pending message with 5-second timer
+    const timer = setTimeout(() => {
+      console.log('⏰ [MESSAGE] Timer expired, now sending to database:', messageId)
+      // After 5 seconds, actually send the message
+      actualSendMessage(messageToSend, messageId)
+    }, 5000)
+    
+    setPendingMessage({
+      text: messageToSend,
+      id: messageId,
+      timer
+    })
+    
+    // Smooth scroll animation for new message
+    setTimeout(() => {
+      const messageArea = document.querySelector('.messages-container')
+      if (messageArea) {
+        messageArea.scrollTo({
+          top: messageArea.scrollHeight,
+          behavior: 'smooth'
+        })
+      }
+    }, 100)
+  }
+
+  const handleUndoMessage = () => {
+    if (!pendingMessage) return
+    
+    console.log('↩️ [MESSAGE] Undo clicked - message will NOT be sent to database:', {
+      pendingId: pendingMessage.id,
+      messageText: pendingMessage.text,
+      ticketId: ticket?.ticket_id
+    })
+    
+    // Clear the timer
+    if (pendingMessage.timer) {
+      clearTimeout(pendingMessage.timer)
+    }
+    
+    // Restore message text to editor
+    setMessageText(pendingMessage.text)
+    
+    // Clear pending message
+    setPendingMessage(null)
+  }
+
+  const actualSendMessage = async (messageToSend: string, _messageId: string) => {
+    if (!ticket) return
+    
     setIsSending(true)
     
     try {
-      console.log('📤 [MESSAGE] Sending message:', {
+      console.log('📤 [MESSAGE] Actually sending message to database:', {
         ticketId: ticket.ticket_id,
         messageLength: messageToSend.length,
         sender: user?.email || 'UNKNOWN_USER',
+        currentMessageCount: ticket.message_count,
         timestamp: new Date().toISOString()
       })
       
@@ -258,24 +371,21 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
         showErrorToast(errorMsg)
         // Restore message text on failure
         setMessageText(messageToSend)
+        setPendingMessage(null)
         return
       }
       
-      // Successfully sent - refresh ticket data to get new message
+      // Successfully sent - clear pending message and refresh
+      setPendingMessage(null)
+      
       if ('data' in result && result.data) {
         console.log('✅ [MESSAGE] Message sent successfully:', result.data)
         
-        // Update parent state to refresh the ticket with new message
-        console.log('📊 [MESSAGE] Refreshing ticket data to get new message')
-        onTicketUpdate?.(ticket.ticket_id, { 
-          message_count: (ticket.message_count || 0) + 1,
-          last_message_at: new Date().toISOString()
-        })
-        
-        // Also trigger a full refresh to ensure we get the new message
+        // Trigger a full refresh to get the new message from database
+        console.log('📊 [MESSAGE] Refreshing ticket data to get new message from database')
         setTimeout(() => {
           onTicketUpdate?.(ticket.ticket_id)
-        }, 500)
+        }, 300)
         
         // Smooth scroll animation
         setTimeout(() => {
@@ -291,6 +401,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
         console.error('❌ [MESSAGE] No message data in response')
         showErrorToast('Message sent but no response data received')
         setMessageText(messageToSend)
+        setPendingMessage(null)
       }
       
     } catch (error) {
@@ -299,6 +410,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
       showErrorToast(errorMsg)
       // Restore message text on error
       setMessageText(messageToSend)
+      setPendingMessage(null)
     } finally {
       setIsSending(false)
     }
@@ -338,7 +450,46 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl shadow-lg overflow-hidden">
+    <>
+      <style>{`
+        @keyframes slideInFromBottom {
+          0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        .message-slide-in {
+          animation: slideInFromBottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(156, 163, 175, 0.5);
+          border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(156, 163, 175, 0.8);
+        }
+      `}</style>
+      <div className="flex h-full flex-col rounded-2xl shadow-lg overflow-hidden">
       <header className="px-3 py-2 border-b border-gray-200 sticky top-0 z-10" style={{ background: 'rgba(255,255,255,0.7)' }}>
         {/* Line 1: Subject only */}
         <div className="mb-1">
@@ -494,7 +645,11 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
             <div 
               key={m.message_id} 
               data-message-id={m.message_id}
-              className={`flex w-full ${isAgent ? 'justify-end' : 'justify-start'} transition-all duration-300 ease-out`}
+              className={`flex w-full ${isAgent ? 'justify-end' : 'justify-start'} message-slide-in`}
+              style={{ 
+                animation: 'slideInFromBottom 0.3s ease-out',
+                transform: 'translateY(0)'
+              }}
             >
               <div
                 className={
@@ -563,6 +718,14 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
             </div>
           )
         })}
+        
+        {/* Pending message with undo option */}
+        {pendingMessage && (
+          <PendingMessage 
+            message={pendingMessage.text}
+            onUndo={handleUndoMessage}
+          />
+        )}
         {(!ticket.messages || !Array.isArray(ticket.messages) || ticket.messages.length === 0) && (
           <div className="text-center text-gray-500 py-8">
             <div className="text-lg mb-2">📝</div>
@@ -724,6 +887,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
         document.body
       )}
     </div>
+    </>
   )
 }
 

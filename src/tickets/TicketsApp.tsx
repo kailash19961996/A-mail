@@ -190,7 +190,11 @@ export default function TicketsApp() {
         </main>
 
         {/* Assistant Panel - shows as right column when open */}
-        <AssistantPanel open={assistantOpen} onToggle={() => setAssistantOpen((v) => !v)} />
+        <AssistantPanel 
+          open={assistantOpen} 
+          onToggle={() => setAssistantOpen((v) => !v)}
+          ticket={activeTicket}
+        />
       </div>
     </div>
   )
