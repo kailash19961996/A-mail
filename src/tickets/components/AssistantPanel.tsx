@@ -478,10 +478,10 @@ export function AssistantPanel({ open, onToggle, ticket }: Props) {
   }
 
   const suggestions = [
+    'Brief me about this ticket',
     'Draft a response acknowledging the issue',
     'Suggest troubleshooting steps',
     'Request additional information',
-    'Escalate to technical team',
     'Close ticket with resolution'
   ]
 
@@ -585,7 +585,7 @@ export function AssistantPanel({ open, onToggle, ticket }: Props) {
       {/* Quick Actions - only show initially */}
       {showQuickActions && (
       <div className="p-4 space-y-3 flex-shrink-0">
-        <div className="text-sm font-medium text-gray-700 mb-2">Quick Actions:</div>
+        <div className="text-base font-medium text-black-700 mb-2">Quick Actions:</div>
         <div className="grid grid-cols-1 gap-2">
           {suggestions.map((suggestion, idx) => (
             <button
