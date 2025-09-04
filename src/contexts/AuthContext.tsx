@@ -70,7 +70,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       dev_log('✅ Auth check response:', response.data);
       
       if (response.status === 200 && response.data.success && response.data.data) {
-        setUser(response.data.data);
+        // Preserve existing fields (like email) if backend doesn't return them
+        setUser((prev) => ({ ...(prev || {}), ...response.data.data } as any));
         setIsAuthenticated(true);
         dev_log('🔓 User authenticated successfully:', response.data.data);
         return true;
@@ -141,6 +142,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Function to manually set auth state (used after successful OTP verification)
   const setAuthState = useCallback((userData: User) => {
     dev_log('🔧 Manually setting auth state:', userData);
+    try {
+      if ((userData as any).email) {
+        localStorage.setItem('auth_email', (userData as any).email as string);
+      }
+    } catch {}
     setUser(userData);
     setIsAuthenticated(true);
     setIsLoading(false);
@@ -155,6 +161,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!hasInitialAuthCheck.current) {
       dev_log('🚀 AuthContext created, running initial auth check...');
       hasInitialAuthCheck.current = true;
+      // Seed email from localStorage before check, so UI can use it immediately
+      try {
+        const storedEmail = localStorage.getItem('auth_email');
+        if (storedEmail) {
+          setUser((prev) => prev ? ({ ...prev, email: storedEmail } as any) : ({ email: storedEmail } as any));
+        }
+      } catch {}
       checkAuth();
     } else {
       dev_log('⏭️ Initial auth check already completed, skipping...');

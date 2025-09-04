@@ -68,26 +68,42 @@ export default function TicketsApp() {
 
   useEffect(() => { loadTickets() }, [])
 
-  const currentUserEmail = user?.email || ''
+  const currentUserEmail = user?.email || (typeof window !== 'undefined' ? localStorage.getItem('auth_email') || '' : '')
+
+  const emailAliases = (email: string): string[] => {
+    if (!email) return []
+    const [local, domain] = email.split('@')
+    if (!domain) return [email]
+    const aliases = new Set<string>()
+    aliases.add(email)
+    if (domain.toLowerCase() === 'bluelionlaw.com') {
+      aliases.add(`${local}@claimlionlaw.com`)
+    } else if (domain.toLowerCase() === 'claimlionlaw.com') {
+      aliases.add(`${local}@bluelionlaw.com`)
+    }
+    return Array.from(aliases)
+  }
 
   const counts = useMemo(() => {
     const open = tickets.filter(t => t.assigned_to === 'UNASSIGNED' || !t.assigned_to).length
-    const inProgress = tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'IN_PROGRESS').length
-    const onHold = tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'ON_HOLD').length
-    const resolved = tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'RESOLVED').length
+    const aliases = emailAliases(currentUserEmail)
+    const inProgress = tickets.filter(t => aliases.includes(t.assigned_to) && t.status === 'IN_PROGRESS').length
+    const onHold = tickets.filter(t => aliases.includes(t.assigned_to) && t.status === 'ON_HOLD').length
+    const resolved = tickets.filter(t => aliases.includes(t.assigned_to) && t.status === 'RESOLVED').length
     return { OPEN: open, IN_PROGRESS: inProgress, ON_HOLD: onHold, RESOLVED: resolved }
   }, [tickets, currentUserEmail])
 
   const filtered = useMemo(() => {
+    const aliases = emailAliases(currentUserEmail)
     switch (activeStatus) {
       case 'OPEN':
         return tickets.filter(t => t.assigned_to === 'UNASSIGNED' || !t.assigned_to)
       case 'IN_PROGRESS':
-        return tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'IN_PROGRESS')
+        return tickets.filter(t => aliases.includes(t.assigned_to) && t.status === 'IN_PROGRESS')
       case 'ON_HOLD':
-        return tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'ON_HOLD')
+        return tickets.filter(t => aliases.includes(t.assigned_to) && t.status === 'ON_HOLD')
       case 'RESOLVED':
-        return tickets.filter(t => t.assigned_to === currentUserEmail && t.status === 'RESOLVED')
+        return tickets.filter(t => aliases.includes(t.assigned_to) && t.status === 'RESOLVED')
       default:
         return []
     }

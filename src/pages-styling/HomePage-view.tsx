@@ -95,7 +95,7 @@ const HomePageView: React.FC<HomePageViewProps> = ({ userFirstName, isLoading, p
               </div>
               <div className="p-4">
                 <div className="space-y-3">
-                  {(pageData as LeadGenData).topSources.map((source: string, index: number) => (
+                  {((pageData as LeadGenData).topSources ?? []).map((source: string, index: number) => (
                     <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
                       <span className="text-gray-800 font-medium text-sm">{source}</span>
                       <div className="w-24 bg-gray-300 rounded-full h-2">
@@ -158,7 +158,7 @@ const HomePageView: React.FC<HomePageViewProps> = ({ userFirstName, isLoading, p
               </div>
               <div className="p-4">
                 <div className="space-y-3">
-                  {(pageData as UserSummaryData).recentActivity.map((activity: string, index: number) => (
+                  {((pageData as UserSummaryData).recentActivity ?? []).map((activity: string, index: number) => (
                     <div key={index} className="flex items-center space-x-3 p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
                       <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                       <div className="flex-1">

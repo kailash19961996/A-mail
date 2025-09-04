@@ -164,7 +164,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
   const handleAssignToggle = async () => {
     if (!ticket) return
     
-    const currentUserEmail = user?.email || ''
+    const currentUserEmail = user?.email || (typeof window !== 'undefined' ? localStorage.getItem('auth_email') || '' : '')
     const newAssignment = isAssigned ? 'UNASSIGNED' : currentUserEmail
     const newStatus = isAssigned ? 'OPEN' : 'IN_PROGRESS' // Auto-set status based on assignment
     
@@ -218,7 +218,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
       })
       
     } catch (error) {
-      const errorMsg = `Network error updating assignment: ${error}`
+      const errorMsg = `Network error updating assignment: ${String(error)}`
       console.error('❌ [ASSIGN] Network error:', error)
       showErrorToast(errorMsg)
       // Revert on error
@@ -513,7 +513,21 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
                     color: isAgent ? 'rgba(255,255,255,0.75)' : 'rgba(107,114,128,0.85)'
                   }}
                 >
-                  {m.created_by_type.toLowerCase()} • {dayjs(m.created_at).format('MMM D, HH:mm')} • ID: {m.message_id}
+                  {m.created_by_type === 'AGENT' && (
+                    <>
+                      {m.created_by_id} • {dayjs(m.created_at).format('MMM D, HH:mm')} • ID: {m.message_id}
+                    </>
+                  )}
+                  {m.created_by_type === 'CLIENT' && (
+                    <>
+                      {dayjs(m.created_at).format('MMM D, HH:mm')} • ID: {m.message_id}
+                    </>
+                  )}
+                  {m.created_by_type !== 'AGENT' && m.created_by_type !== 'CLIENT' && (
+                    <>
+                      {m.created_by_type.toLowerCase()} • {dayjs(m.created_at).format('MMM D, HH:mm')} • ID: {m.message_id}
+                    </>
+                  )}
                 </div>
                 <div className="whitespace-pre-wrap">{m.text}</div>
                 {m.attachments && m.attachments.length > 0 && (
