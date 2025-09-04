@@ -7,7 +7,7 @@
 
 .star {
   position: absolute;
-  color: #8b5cf6; /* Purple color */
+  color: #8b5cf6;
   font-size: 15px;
   opacity: 0;
   animation: starGlow 3.8s ease-out;
