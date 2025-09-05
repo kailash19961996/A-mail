@@ -99,15 +99,18 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
-      if (!target.closest('.dropdown-container')) {
+      // Treat clicks inside either the in-flow trigger container OR the portal menu as inside
+      const clickedInsideTrigger = !!target.closest('.dropdown-container')
+      const clickedInsidePortal = !!target.closest('.dropdown-portal-menu')
+      if (!clickedInsideTrigger && !clickedInsidePortal) {
         setStatusDropdownOpen(false)
         setTicketGroupDropdownOpen(false)
       }
     }
     
     if (statusDropdownOpen || ticketGroupDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
     }
   }, [statusDropdownOpen, ticketGroupDropdownOpen])
   const [attachmentViewer, setAttachmentViewer] = useState<Attachment | null>(null)
@@ -115,7 +118,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
   const [isAssigned, setIsAssigned] = useState(ticket?.assigned_to === (user?.email || ''))
   const [isSending, setIsSending] = useState(false)
   const [currentStatus, setCurrentStatus] = useState<TicketStatus>(ticket?.status || 'OPEN')
-  const [currentTicketGroup, setCurrentTicketGroup] = useState<'Ops Team' | 'Tech' | 'Litigation' | 'assign group'>('Litigation')
+  const [currentTicketGroup, setCurrentTicketGroup] = useState<'Ops Team' | 'Tech' | 'Litigation' | 'assign group'>('assign group')
   const [pendingMessage, setPendingMessage] = useState<{text: string, id: string, timer: number | null} | null>(null)
 
 
@@ -131,7 +134,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
         messageCount: ticket.messages?.length || 0
       })
       setCurrentStatus(ticket.status)
-      setCurrentTicketGroup((ticket.ticket_group as 'Ops Team' | 'Tech' | 'Litigation') || 'Litigation')
+      setCurrentTicketGroup(ticket.ticket_group as 'Ops Team' | 'Tech' | 'Litigation' || 'assign group')
       setIsAssigned(ticket.assigned_to === (user?.email || ''))
     }
   }, [ticket])
@@ -401,9 +404,20 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
         
         // Trigger a full refresh to get the new message from database
         console.log('📊 [MESSAGE] Refreshing ticket data to get new message from database')
+        
+        // Optimistically update next_action locally first
+        const updatedNextAction = 'CLIENT' // Since agent sent the message, next action should be CLIENT
+        onTicketUpdate?.(ticket.ticket_id, { 
+          next_action: updatedNextAction,
+          message_count: ticket.message_count + 1,
+          last_message_at: new Date().toISOString(),
+          last_updated_at: new Date().toISOString()
+        })
+        
+        // Also do a full refresh after a longer delay to ensure database consistency
         setTimeout(() => {
           onTicketUpdate?.(ticket.ticket_id)
-        }, 300)
+        }, 1000)
         
         // Smooth scroll animation
         setTimeout(() => {
@@ -438,7 +452,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
   const showErrorToast = (message: string) => {
     // Create toast element
     const toast = document.createElement('div')
-    toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999]'
+    toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999] animate-in'
     toast.textContent = message
     toast.style.animation = 'slideInFromTop 0.3s ease-out'
     
@@ -546,7 +560,6 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
               {/* Ticket Group Dropdown */}
               <div className="relative">
                 <button
-                  ref={groupButtonRef}
                   onClick={() => setTicketGroupDropdownOpen(!ticketGroupDropdownOpen)}
                   className="group-dropdown-button flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded border border-gray-300 hover:bg-gray-50 transition-all duration-200"
                   style={{ 
@@ -557,19 +570,28 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
                   <span className="font-medium">{currentTicketGroup}</span>
                   <ChevronDownIcon className="w-3 h-3 text-white flex-shrink-0" />
                 </button>
+
                 {ticketGroupDropdownOpen && createPortal((() => {
                   const rect = groupButtonRef.current?.getBoundingClientRect()
                   return (
-                    <div style={{ position: 'fixed', inset: 0 as any, zIndex: 9998 }} onClick={() => setTicketGroupDropdownOpen(false)}>
+                    <div
+                      style={{ position: 'fixed', inset: 0 as any, zIndex: 10000 }}
+                      onClick={() => setTicketGroupDropdownOpen(false)}
+                    >
                       <div
-                        className="border border-gray-200 rounded shadow-lg dropdown-enter whitespace-normal bg-white"
-                        style={{ position: 'fixed', top: (rect?.bottom || 0) + 4, left: rect?.left || 0, minWidth: 140 }}
+                        className="dropdown-portal-menu border border-gray-200 rounded shadow-lg dropdown-enter whitespace-normal bg-white"
+                        style={{
+                          position: 'fixed',
+                          top: (rect?.bottom || 0) + 4,
+                          left: rect?.left || 0,
+                          minWidth: 140
+                        }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         {(['Ops Team', 'Tech', 'Litigation'] as const).map((group) => (
                           <button
                             key={group}
-                            onMouseDown={(e) => { e.stopPropagation(); handleTicketGroupChange(group) }}
+                            onClick={() => handleTicketGroupChange(group)}
                             className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 first:rounded-t last:rounded-b transition-colors"
                             style={{ color: '#6b7280' }}
                           >
@@ -610,16 +632,24 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
                 {ticketGroupDropdownOpen && createPortal((() => {
                   const rect = groupButtonRef.current?.getBoundingClientRect()
                   return (
-                    <div style={{ position: 'fixed', inset: 0 as any, zIndex: 9998 }} onClick={() => setTicketGroupDropdownOpen(false)}>
+                    <div
+                      style={{ position: 'fixed', inset: 0 as any, zIndex: 10000 }}
+                      onClick={() => setTicketGroupDropdownOpen(false)}
+                    >
                       <div
-                        className="border border-gray-200 rounded shadow-lg dropdown-enter whitespace-normal bg-white"
-                        style={{ position: 'fixed', top: (rect?.bottom || 0) + 4, left: rect?.left || 0, minWidth: 140 }}
+                        className="dropdown-portal-menu border border-gray-200 rounded shadow-lg dropdown-enter whitespace-normal bg-white"
+                        style={{
+                          position: 'fixed',
+                          top: (rect?.bottom || 0) + 4,
+                          left: rect?.left || 0,
+                          minWidth: 140
+                        }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         {(['Ops Team', 'Tech', 'Litigation'] as const).map((group) => (
                           <button
                             key={group}
-                            onMouseDown={(e) => { e.stopPropagation(); handleTicketGroupChange(group) }}
+                            onClick={() => handleTicketGroupChange(group)}
                             className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 first:rounded-t last:rounded-b transition-colors"
                             style={{ color: '#6b7280' }}
                           >
@@ -647,16 +677,24 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
             {statusDropdownOpen && createPortal((() => {
               const rect = statusButtonRef.current?.getBoundingClientRect()
               return (
-                <div style={{ position: 'fixed', inset: 0 as any, zIndex: 9998 }} onClick={() => setStatusDropdownOpen(false)}>
+                <div
+                  style={{ position: 'fixed', inset: 0 as any, zIndex: 10000 }}
+                  onClick={() => setStatusDropdownOpen(false)}
+                >
                   <div
-                    className="border border-gray-200 rounded shadow-lg dropdown-enter whitespace-normal bg-white"
-                    style={{ position: 'fixed', top: (rect?.bottom || 0) + 4, left: rect ? (rect.right - 160) : 0, minWidth: 160 }}
+                    className="dropdown-portal-menu border border-gray-200 rounded shadow-lg dropdown-enter whitespace-normal bg-white"
+                    style={{
+                      position: 'fixed',
+                      top: (rect?.bottom || 0) + 4,
+                      left: rect ? (rect.right - 160) : 0,
+                      minWidth: 160
+                    }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     {(['IN_PROGRESS', 'ON_HOLD', 'RESOLVED'] as TicketStatus[]).map((status) => (
                       <button
                         key={status}
-                        onMouseDown={(e) => { e.stopPropagation(); handleStatusChange(status) }}
+                        onClick={() => handleStatusChange(status)}
                         className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 first:rounded-t last:rounded-b transition-colors"
                         style={{ color: UI_COLORS.status[status] }}
                       >

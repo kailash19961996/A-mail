@@ -47,7 +47,7 @@ def chat(session_id: str, input_text: str, system_context: Optional[str] = None)
         
         # Call OpenAI API
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=messages,
             temperature=0.7,
             max_tokens=500
@@ -70,7 +70,7 @@ def chat(session_id: str, input_text: str, system_context: Optional[str] = None)
                     "completion_tokens": int(completion_tokens),
                     "total_tokens": int(total_tokens)
                 }
-                # Approximate pricing for gpt-3.5-turbo (USD per 1K tokens)
+                # Approximate pricing for gpt-4o-mini (USD per 1K tokens)
                 input_cost_per_1k = 0.00015
                 output_cost_per_1k = 0.0006
                 cost_usd = (prompt_tokens * input_cost_per_1k + completion_tokens * output_cost_per_1k) / 1000.0

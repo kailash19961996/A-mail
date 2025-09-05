@@ -284,14 +284,22 @@ def add_message_to_ticket(
         # Save message to DynamoDB
         messages_table.put_item(Item=message_item)
         
+        # Determine next_action based on who sent the message
+        # If AGENT sends message, next action should be CLIENT
+        # If CLIENT sends message, next action should be AGENT
+        next_action = 'CLIENT' if created_by_type.upper() == 'AGENT' else 'AGENT'
+        
+        logger.info(f"📋 [MESSAGE] Setting next_action: {next_action} (message from {created_by_type})")
+        
         # Update ticket metadata
         tickets_table.update_item(
             Key={'ticket_id': ticket_id},
-            UpdateExpression='ADD message_count :inc SET last_message_at = :last_message, last_updated_at = :last_updated',
+            UpdateExpression='ADD message_count :inc SET last_message_at = :last_message, last_updated_at = :last_updated, next_action = :next_action',
             ExpressionAttributeValues={
                 ':inc': 1,
                 ':last_message': current_time,
-                ':last_updated': current_time
+                ':last_updated': current_time,
+                ':next_action': next_action
             }
         )
         
