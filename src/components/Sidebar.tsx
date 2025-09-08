@@ -20,7 +20,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { hasPermission, ROLES, dev_log } from '../utils/coreUtils';
+import { hasPermission, dev_log } from '../utils/coreUtils';
 import SidebarView, { type SidebarViewGroup } from './Sidebar-view';
 
 // ============================================================================
@@ -58,123 +58,111 @@ const Sidebar: React.FC = () => {
   // STATE MANAGEMENT
   // ============================================================================
   
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Sidebar is always expanded - no collapse functionality
 
   // ============================================================================
   // NAVIGATION CONFIGURATION
   // ============================================================================
 
   const navigationGroups: NavigationGroup[] = [
-    // Main Section - All Users
+    // Workspace
     {
-      label: 'Main',
+      label: 'Workspace',
       icon: 'Home',
       items: [
-        { path: '/home', label: 'Home', icon: 'Home' },
+        { path: '/home', label: 'Dashboard', icon: 'Home' },
         { path: '/tickets', label: 'Tickets', icon: 'MessageSquare' }
       ]
     },
     
-    // Validation Screens
+    // Intake & Verification
     {
-      label: 'Validation Screens',
+      label: 'Intake & Verification',
       icon: 'CheckCircle',
       items: [
         { 
           path: '/validate/client-review', 
           label: 'Client Review', 
-          icon: 'Users',
-          userRoles: [ROLES.REVIEW_CLIENT]
+          icon: 'Users'
         },
         { 
           path: '/validate/id-review', 
-          label: 'ID Review', 
-          icon: 'Shield',
-          userRoles: [ROLES.REVIEW_ID]
+          label: 'ID Verification', 
+          icon: 'Shield'
         }
       ]
     },
     
-    // Review Screens
+    // Matter Review
     {
-      label: 'Review Screens',
+      label: 'Matter Review',
       icon: 'Eye',
       items: [
         { 
           path: '/review/sar', 
           label: 'SAR Review', 
-          icon: 'FileCheck',
-          userRoles: [ROLES.REVIEW_SAR]
+          icon: 'FileCheck'
         },
         { 
           path: '/review/presub', 
-          label: 'PreSub Review', 
-          icon: 'FileCheck',
-          userRoles: [ROLES.REVIEW_PRE_SUB]
+          label: 'Pre-Submission', 
+          icon: 'FileCheck'
         },
         { 
           path: '/review/floc', 
           label: 'FLOC Review', 
-          icon: 'FileCheck',
-          userRoles: [ROLES.REVIEW_FLOC]
+          icon: 'FileCheck'
         }
       ]
     },
     
-    // All Data
+    // Data
     {
-      label: 'All Data',
+      label: 'Data',
       icon: 'Database',
       items: [
         { 
           path: '/all-clients', 
-          label: 'All Clients', 
-          icon: 'Users',
-          userRoles: [ROLES.CLIENTS_ALL, ROLES.CLIENTS_ALL_VIEW_ONLY]
+          label: 'Clients', 
+          icon: 'Users'
         },
         { 
           path: '/all-cases', 
-          label: 'All Cases', 
-          icon: 'Briefcase',
-          userRoles: [ROLES.CASES_ALL, ROLES.CASES_ALL_VIEW_ONLY]
+          label: 'Matters', 
+          icon: 'Briefcase'
         }
       ]
     },
     
-    // Admin Section - Role-based access
+    // Administration
     {
-      label: 'Admin',
+      label: 'Administration',
       icon: 'Cog',
       items: [
         { 
           path: '/admin/config', 
-          label: 'General Config', 
-          icon: 'Settings',
-          userRoles: [ROLES.ADMIN_CONFIG]
+          label: 'General Settings', 
+          icon: 'Settings'
         },
         { 
           path: '/admin/templates', 
-          label: 'Templates Config', 
-          icon: 'FileText',
-          userRoles: [ROLES.ADMIN_TEMPLATES]
+          label: 'Templates', 
+          icon: 'FileText'
         },
         { 
           path: '/admin/lenders', 
-          label: 'Lenders Config', 
-          icon: 'CreditCard',
-          userRoles: [ROLES.ADMIN_LENDERS]
+          label: 'Lenders', 
+          icon: 'CreditCard'
         },
         { 
           path: '/admin/actions', 
-          label: 'Actions Config', 
-          icon: 'Zap',
-          userRoles: [ROLES.ADMIN_ACTIONS]
+          label: 'Automation', 
+          icon: 'Zap'
         },
         { 
           path: '/admin/users', 
           label: 'User Management', 
-          icon: 'Users',
-          userRoles: ['*'] // Only SysAdmin can access user management
+          icon: 'Users'
         }
       ]
     }
@@ -278,10 +266,7 @@ const Sidebar: React.FC = () => {
 
   return (
     <SidebarView
-      isCollapsed={isCollapsed}
-      onToggle={() => setIsCollapsed(!isCollapsed)}
       groups={viewGroups}
-      itemSpacingPx={11}
       footer={footer}
     />
   );

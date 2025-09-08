@@ -1,3 +1,20 @@
+"""
+A-mail Backend Lambda Function
+
+Main AWS Lambda handler for the A-mail ticket management system.
+Provides RESTful API endpoints for ticket and message management.
+
+Features:
+- Ticket CRUD operations
+- Message management
+- AI chat integration
+- Status updates and assignments
+- Comprehensive logging and error handling
+
+Author: A-mail Development Team
+License: MIT
+"""
+
 import json
 import os
 import logging
@@ -14,9 +31,28 @@ from utils import (
     add_message_to_ticket
 )
 
-# Configure logging
+# Configure comprehensive logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+# Add custom print statements for enhanced debugging
+def log_info(message: str, data: Any = None):
+    """Enhanced logging with print statements for CloudWatch visibility"""
+    timestamp = datetime.utcnow().isoformat()
+    log_msg = f"[{timestamp}] INFO: {message}"
+    if data:
+        log_msg += f" | Data: {json.dumps(data, default=str)}"
+    print(log_msg)
+    logger.info(log_msg)
+
+def log_error(message: str, error: Any = None):
+    """Enhanced error logging with print statements"""
+    timestamp = datetime.utcnow().isoformat()
+    log_msg = f"[{timestamp}] ERROR: {message}"
+    if error:
+        log_msg += f" | Error: {str(error)}"
+    print(log_msg)
+    logger.error(log_msg)
 
 def get_cors_headers() -> Dict[str, str]:
     """Return CORS headers for API responses"""
@@ -46,82 +82,138 @@ def create_response(status_code: int, body: Any = None, error: Optional[str] = N
     }
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Main Lambda handler function"""
+    """
+    Main Lambda Handler Function
+    
+    Processes incoming HTTP requests and routes them to appropriate handlers.
+    Provides comprehensive logging for debugging and monitoring.
+    """
     
     try:
-        logger.info(f"Received event: {json.dumps(event)}")
+        # Log incoming request details
+        method = event.get('httpMethod', '').upper()
+        path = event.get('path', '')
+        request_id = context.aws_request_id if context else 'local'
+        
+        # Safely extract headers and request context
+        headers = event.get('headers') or {}
+        request_context = event.get('requestContext') or {}
+        identity = request_context.get('identity') or {}
+        
+        log_info("🚀 Lambda function invoked", {
+            'requestId': request_id,
+            'method': method,
+            'path': path,
+            'userAgent': headers.get('User-Agent', 'Unknown'),
+            'sourceIP': identity.get('sourceIp', 'Unknown')
+        })
+        
+        print(f"📋 Full event details: {json.dumps(event, default=str)}")
         
         # Handle OPTIONS request for CORS preflight
-        if event.get('httpMethod') == 'OPTIONS':
+        if method == 'OPTIONS':
+            log_info("✅ CORS preflight request handled")
             return create_response(200)
         
         # Extract request details
-        method = event.get('httpMethod', '').upper()
-        path = event.get('path', '')
         path_parameters = event.get('pathParameters') or {}
         query_parameters = event.get('queryStringParameters') or {}
+        
+        log_info("📊 Request parameters extracted", {
+            'pathParams': path_parameters,
+            'queryParams': query_parameters
+        })
         
         # Parse body if present
         body = {}
         if event.get('body'):
             try:
                 body = json.loads(event['body'])
-            except json.JSONDecodeError:
+                log_info("📝 Request body parsed", {'bodySize': len(str(body))})
+            except json.JSONDecodeError as e:
+                log_error("❌ Invalid JSON in request body", e)
                 return create_response(400, error="Invalid JSON in request body")
         
         # Health check endpoint
         if path == '/health' and method == 'GET':
+            log_info("💚 Health check requested")
             return create_response(200, {
                 'status': 'healthy',
-                'service': 'bluelion-ticketing-system',
+                'service': 'a-mail-ticketing-system',
                 'timestamp': datetime.utcnow().isoformat() + 'Z',
                 'version': '1.0.0'
             })
         
         # Route requests - Order matters! More specific routes first
+        log_info("🔀 Routing request", {'method': method, 'path': path})
+        
         # AI chat endpoints
         if path == '/ai/chat' and method == 'POST':
+            log_info("🤖 AI chat request received")
             return handle_ai_chat(body)
         if path == '/ai/reset' and method == 'POST':
+            log_info("🔄 AI reset request received")
             return handle_ai_reset(body)
 
         if path == '/tickets':
             if method == 'GET':
+                log_info("📋 Get all tickets request")
                 return handle_get_tickets(query_parameters)
             elif method == 'POST':
+                log_info("➕ Create ticket request")
                 return handle_create_ticket(body)
         
         elif path.startswith('/tickets/') and path.endswith('/messages'):
             # Handle messages endpoint BEFORE single ticket endpoint
             ticket_id = path.split('/')[2]  # Extract ticket_id from /tickets/{ticket_id}/messages
+            log_info("💬 Message endpoint accessed", {'ticketId': ticket_id, 'method': method})
             
             if method == 'GET':
+                log_info("📨 Get messages request", {'ticketId': ticket_id})
                 return handle_get_ticket_messages(ticket_id)
             elif method == 'POST':
+                log_info("✉️ Add message request", {'ticketId': ticket_id})
                 return handle_add_message(ticket_id, body)
         
         elif path.startswith('/tickets/') and len(path_parameters.get('ticket_id', '')) > 0:
             ticket_id = path_parameters['ticket_id']
+            log_info("🎫 Single ticket endpoint accessed", {'ticketId': ticket_id, 'method': method})
             
             if method == 'GET':
+                log_info("🔍 Get single ticket request", {'ticketId': ticket_id})
                 return handle_get_ticket(ticket_id)
             elif method == 'PATCH':
+                log_info("✏️ Update ticket request", {'ticketId': ticket_id})
                 return handle_update_ticket(ticket_id, body)
         
         # Route not found
+        log_error("❌ Route not found", {'method': method, 'path': path})
         return create_response(404, error=f"Route not found: {method} {path}")
         
     except Exception as e:
-        logger.error(f"Unhandled error: {str(e)}")
-        logger.error(traceback.format_exc())
+        log_error("💥 Unhandled exception in lambda_handler", {
+            'error': str(e),
+            'traceback': traceback.format_exc(),
+            'path': event.get('path', 'unknown'),
+            'method': event.get('httpMethod', 'unknown')
+        })
         return create_response(500, error="Internal server error")
 
 def handle_get_tickets(query_params: Dict[str, str]) -> Dict[str, Any]:
-    """Handle GET /tickets - retrieve all tickets with optional filtering"""
+    """
+    Handle GET /tickets - retrieve all tickets with optional filtering
+    Supports filtering by status, assigned_to, and ticket_group
+    """
     try:
         status = query_params.get('status')
         assigned_to = query_params.get('assigned_to')
         ticket_group = query_params.get('ticket_group')
+        
+        log_info("🔍 Fetching tickets with filters", {
+            'status': status,
+            'assigned_to': assigned_to,
+            'ticket_group': ticket_group
+        })
         
         tickets = get_all_tickets(
             status_filter=status,
@@ -129,39 +221,87 @@ def handle_get_tickets(query_params: Dict[str, str]) -> Dict[str, Any]:
             ticket_group_filter=ticket_group
         )
         
+        log_info("✅ Tickets retrieved successfully", {
+            'count': len(tickets) if tickets else 0,
+            'filters_applied': bool(status or assigned_to or ticket_group)
+        })
+        
         return create_response(200, tickets)
         
     except Exception as e:
-        logger.error(f"Error getting tickets: {str(e)}")
+        log_error("❌ Error getting tickets", {
+            'error': str(e),
+            'filters': query_params,
+            'traceback': traceback.format_exc()
+        })
         return create_response(500, error="Failed to retrieve tickets")
 
 def handle_get_ticket(ticket_id: str) -> Dict[str, Any]:
-    """Handle GET /tickets/{ticket_id} - retrieve single ticket"""
+    """
+    Handle GET /tickets/{ticket_id} - retrieve single ticket
+    Returns complete ticket details including messages
+    """
     try:
+        log_info("🎫 Fetching single ticket", {'ticketId': ticket_id})
+        
         ticket = get_ticket_by_id(ticket_id)
         
         if not ticket:
+            log_info("❌ Ticket not found", {'ticketId': ticket_id})
             return create_response(404, error=f"Ticket {ticket_id} not found")
+        
+        log_info("✅ Ticket retrieved successfully", {
+            'ticketId': ticket_id,
+            'status': ticket.get('status'),
+            'messageCount': len(ticket.get('messages', []))
+        })
         
         return create_response(200, ticket)
         
     except Exception as e:
-        logger.error(f"Error getting ticket {ticket_id}: {str(e)}")
+        log_error("❌ Error getting single ticket", {
+            'ticketId': ticket_id,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        })
         return create_response(500, error="Failed to retrieve ticket")
 
 def handle_get_ticket_messages(ticket_id: str) -> Dict[str, Any]:
-    """Handle GET /tickets/{ticket_id}/messages - retrieve messages for a ticket"""
+    """
+    Handle GET /tickets/{ticket_id}/messages - retrieve messages for a ticket
+    Returns chronologically ordered messages for the specified ticket
+    """
     try:
+        log_info("📨 Fetching ticket messages", {'ticketId': ticket_id})
+        
         messages = get_ticket_messages(ticket_id)
+        
+        log_info("✅ Messages retrieved successfully", {
+            'ticketId': ticket_id,
+            'messageCount': len(messages) if messages else 0
+        })
+        
         return create_response(200, messages)
         
     except Exception as e:
-        logger.error(f"Error getting messages for ticket {ticket_id}: {str(e)}")
+        log_error("❌ Error getting ticket messages", {
+            'ticketId': ticket_id,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        })
         return create_response(500, error="Failed to retrieve ticket messages")
 
 def handle_ai_chat(body: Dict[str, Any]) -> Dict[str, Any]:
-    """Handle POST /ai/chat - proxy to AI conversation with session memory"""
+    """
+    Handle POST /ai/chat - proxy to AI conversation with session memory
+    Processes AI chat requests and maintains conversation context
+    """
     try:
+        log_info("🤖 Processing AI chat request", {
+            'hasMessage': 'message' in body,
+            'hasSessionId': 'session_id' in body
+        })
+        
         from ai import chat as ai_chat
         
         required_fields = ['session_id', 'message']

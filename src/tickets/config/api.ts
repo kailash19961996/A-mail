@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: 'https://zs4uqp3kgh.execute-api.eu-west-2.amazonaws.com/dev',
+  BASE_URL: 'https://exmbmulan6.execute-api.eu-west-2.amazonaws.com/prod',
   ENDPOINTS: {
     HEALTH: '/health',
     TICKETS: '/tickets',

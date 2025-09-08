@@ -1,12 +1,30 @@
+/**
+ * TicketConversation Component
+ * 
+ * Main conversation interface for A-mail ticket system.
+ * Handles ticket status management, message sending, and real-time updates.
+ * 
+ * Features:
+ * - Ticket assignment/unassignment
+ * - Status updates (Open, In Progress, On Hold, Resolved)
+ * - Message sending with 5-second undo functionality
+ * - AI assistant integration
+ * - Real-time conversation display
+ */
+
 import dayjs from 'dayjs'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import type { Ticket, TicketStatus, Attachment } from '../types/ticket'
+import type { Ticket, TicketStatus } from '../types/ticket'
 import { apiService } from '../services/api'
 import { useAuth } from '../../contexts/AuthContext'
 
-// PendingMessage component with countdown timer
+/**
+ * PendingMessage Component
+ * Shows a message with countdown timer before it's sent to the database
+ * Allows users to undo message sending within 5 seconds
+ */
 function PendingMessage({ message, onUndo }: { message: string, onUndo: () => void }) {
   const [countdown, setCountdown] = useState(5)
   
@@ -58,6 +76,9 @@ function PendingMessage({ message, onUndo }: { message: string, onUndo: () => vo
   )
 }
 
+/**
+ * Component Props Interface
+ */
 type Props = {
   ticket?: Ticket
   assistantOpen: boolean
@@ -65,9 +86,10 @@ type Props = {
   onTicketUpdate?: (ticketId: string, updates?: Partial<Ticket>) => Promise<void>
 }
 
-// Get current user from application auth context
-
-// UI color scheme constants
+/**
+ * UI Color Scheme Constants
+ * Defines consistent colors for status indicators and UI elements
+ */
 const UI_COLORS = {
   primary: '#6366f1', // indigo-500
   primaryHover: '#4f46e5', // indigo-600
@@ -88,43 +110,65 @@ const UI_COLORS = {
   }
 }
 
+/**
+ * Main TicketConversation Component
+ * Renders the ticket conversation interface with full functionality
+ */
 export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, onTicketUpdate }: Props) {
+  console.log('🎟️ [TICKET_CONVERSATION] Component rendered', {
+    ticketId: ticket?.ticket_id,
+    hasTicket: !!ticket,
+    assistantOpen,
+    timestamp: new Date().toISOString()
+  })
+
   const { user } = useAuth()
+  
+  // Dropdown state management
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
   const [ticketGroupDropdownOpen, setTicketGroupDropdownOpen] = useState(false)
   const groupButtonRef = useRef<HTMLButtonElement | null>(null)
   const statusButtonRef = useRef<HTMLButtonElement | null>(null)
   
-  // Close dropdowns when clicking outside
+  /**
+   * Dropdown Click Outside Handler
+   * Closes dropdowns when user clicks outside of them
+   */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
-      // Treat clicks inside either the in-flow trigger container OR the portal menu as inside
       const clickedInsideTrigger = !!target.closest('.dropdown-container')
       const clickedInsidePortal = !!target.closest('.dropdown-portal-menu')
+      
       if (!clickedInsideTrigger && !clickedInsidePortal) {
+        console.log('🖱️ [DROPDOWN] Click outside detected, closing dropdowns')
         setStatusDropdownOpen(false)
         setTicketGroupDropdownOpen(false)
       }
     }
     
     if (statusDropdownOpen || ticketGroupDropdownOpen) {
+      console.log('🖱️ [DROPDOWN] Setting up click outside listener', {
+        statusDropdownOpen,
+        ticketGroupDropdownOpen
+      })
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
     }
   }, [statusDropdownOpen, ticketGroupDropdownOpen])
-  const [attachmentViewer, setAttachmentViewer] = useState<Attachment | null>(null)
-  const [messageText, setMessageText] = useState('')
-  const [isAssigned, setIsAssigned] = useState(ticket?.assigned_to === (user?.email || ''))
-  const [isSending, setIsSending] = useState(false)
-  const [currentStatus, setCurrentStatus] = useState<TicketStatus>(ticket?.status || 'OPEN')
-  const [currentTicketGroup, setCurrentTicketGroup] = useState<'Ops Team' | 'Tech' | 'Litigation' | 'assign group'>('assign group')
-  const [pendingMessage, setPendingMessage] = useState<{text: string, id: string, timer: number | null} | null>(null)
-
-
-
   
-  // Update state when ticket changes
+  // Message and ticket state management
+  const [messageText, setMessageText] = useState('') // Current message being typed
+  const [isAssigned, setIsAssigned] = useState(ticket?.assigned_to === (user?.email || '')) // Is ticket assigned to current user
+  const [isSending, setIsSending] = useState(false) // Is message currently being sent
+  const [currentStatus, setCurrentStatus] = useState<TicketStatus>(ticket?.status || 'OPEN') // Current ticket status
+  const [currentTicketGroup, setCurrentTicketGroup] = useState<'Ops Team' | 'Tech' | 'Litigation' | 'assign group'>('assign group') // Current ticket group
+  const [pendingMessage, setPendingMessage] = useState<{text: string, id: string, timer: number | null} | null>(null) // Message waiting to be sent (5s delay)
+
+  /**
+   * Ticket State Synchronization
+   * Updates local state when ticket prop changes
+   */
   useEffect(() => {
     if (ticket) {
       console.log('🔄 [TICKET] Updating ticket state:', {
@@ -139,8 +183,27 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
     }
   }, [ticket])
   
+  /**
+   * Status Change Handler
+   * Updates ticket status with optimistic UI updates and backend sync
+   * Only allows status changes for assigned tickets
+   */
   const handleStatusChange = async (newStatus: TicketStatus) => {
-    if (!ticket || !isAssigned) return // Only allow status changes when assigned
+    console.log('🔄 [STATUS] Status change requested', {
+      ticketId: ticket?.ticket_id,
+      currentStatus,
+      newStatus,
+      isAssigned,
+      userEmail: user?.email
+    })
+
+    if (!ticket || !isAssigned) {
+      console.warn('⚠️ [STATUS] Status change blocked - ticket not assigned or missing', {
+        hasTicket: !!ticket,
+        isAssigned
+      })
+      return
+    }
     
     // Optimistic update - update UI immediately
     const previousStatus = currentStatus
@@ -301,8 +364,29 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
     }
   }
 
+  /**
+   * Message Send Handler
+   * Creates a pending message with 5-second undo timer
+   * Only allows sending for assigned tickets with non-empty messages
+   */
   const handleSendMessage = async () => {
-    if (!ticket || !messageText.trim() || !isAssigned) return
+    console.log('📝 [MESSAGE] Send message initiated', {
+      ticketId: ticket?.ticket_id,
+      messageLength: messageText.trim().length,
+      isAssigned,
+      hasTicket: !!ticket,
+      userEmail: user?.email
+    })
+
+    if (!ticket || !messageText.trim() || !isAssigned) {
+      console.warn('⚠️ [MESSAGE] Send blocked', {
+        hasTicket: !!ticket,
+        hasMessage: !!messageText.trim(),
+        isAssigned,
+        reason: !ticket ? 'No ticket' : !messageText.trim() ? 'Empty message' : 'Not assigned'
+      })
+      return
+    }
     
     const messageToSend = messageText.trim()
     const messageId = `pending-${Date.now()}`
@@ -448,8 +532,14 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
     }
   }
 
-  // Error toast function - positioned at top center of screen
+  /**
+   * Error Toast Display Function
+   * Shows error messages at the top center of the screen
+   * Auto-dismisses after 5 seconds with slide animations
+   */
   const showErrorToast = (message: string) => {
+    console.error('🚨 [ERROR_TOAST] Displaying error:', message)
+    
     // Create toast element
     const toast = document.createElement('div')
     toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-[9999] animate-in'
@@ -470,9 +560,6 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
     }, 5000)
   }
 
-  const openAttachmentViewer = (attachment: Attachment) => {
-    setAttachmentViewer(attachment)
-  }
 
   if (!ticket || !ticket.client) {
     return (
@@ -522,7 +609,7 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
           background-color: rgba(156, 163, 175, 0.8);
         }
       `}</style>
-      <div className="flex h-full flex-col rounded-2xl shadow-lg overflow-visible">
+      <div className="flex h-full flex-col rounded-2xl shadow-lg overflow-hidden">
       <header className="px-3 py-2 border-b border-gray-200 sticky top-0 z-10" style={{ background: 'rgba(255,255,255,0.7)' }}>
         {/* Line 1: Subject only */}
         <div className="mb-1">
@@ -770,35 +857,6 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
                   )}
                 </div>
                 <div className="whitespace-pre-wrap">{m.text}</div>
-                {m.attachments && m.attachments.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {m.attachments.map((a, i) => (
-                      <button
-                        key={i}
-                        onClick={() => openAttachmentViewer(a)}
-                        className={'inline-flex items-center gap-2 rounded-full'}
-                        style={{
-                          background: isAgent ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.10)',
-                          color: isAgent ? '#ffffff' : '#1f2937',
-                          padding: '4px 12px',
-                          fontSize: 12,
-                          transition: 'background-color 150ms ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          const target = e.currentTarget as HTMLButtonElement
-                          target.style.background = isAgent ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.20)'
-                        }}
-                        onMouseLeave={(e) => {
-                          const target = e.currentTarget as HTMLButtonElement
-                          target.style.background = isAgent ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.10)'
-                        }}
-                      >
-                        <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: '#34d399' }} />
-                        {a.file_name}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           )
@@ -844,16 +902,6 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
 
               />
             </div>
-            <button
-              type="button"
-              className="text-blue-500 hover:text-blue-600 transition-colors"
-              title="Attach file"
-              style={{ background: 'none', border: 'none', padding: '8px' }}
-            >
-              <svg style={{ width: 20, height: 20 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-7.07 7.07a6 6 0 008.485 8.485L20 13" />
-              </svg>
-            </button>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSendMessage}
@@ -870,14 +918,17 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
                 className={`px-4 py-2 text-sm font-medium transition-all duration-200 relative rounded-lg ${
                   assistantOpen
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+                    : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-105 animate-pulse shadow-purple-500/50'
                 }`}
                 onClick={onToggleAssistant}
                 style={{
                   background: assistantOpen 
                     ? '#4f46e5' 
                     : 'linear-gradient(to right, #8b5cf6, #4f46e5)',
-                  border: 'none'
+                  border: 'none',
+                  boxShadow: assistantOpen 
+                    ? 'none'
+                    : '0 0 20px rgba(139, 92, 246, 0.6), 0 0 40px rgba(79, 70, 229, 0.4)'
                 }}
               >
                 <span className="relative z-10">ASK AI</span>
@@ -894,83 +945,6 @@ export function TicketConversation({ ticket, assistantOpen, onToggleAssistant, o
         )}
       </div>
 
-      {/* Attachment Viewer Modal via portal (prevents clipping and ensures true overlay) */}
-      {attachmentViewer && createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0 as any,
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16
-          }}
-          onClick={(e) => { if (e.target === e.currentTarget) setAttachmentViewer(null) }}
-        >
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 12,
-              width: '100%',
-              maxWidth: 960,
-              maxHeight: '90vh',
-              overflow: 'hidden',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 600 }}>{attachmentViewer.file_name}</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button
-                  onClick={() => {
-                    const link = document.createElement('a')
-                    link.href = `https://${attachmentViewer.bucket}.s3.amazonaws.com/${attachmentViewer.key}`
-                    link.download = attachmentViewer.file_name
-                    link.click()
-                  }}
-                  style={{ padding: '6px 12px', background: '#4f46e5', color: '#fff', borderRadius: 8 }}
-                >
-                  Download
-                </button>
-                <button onClick={() => setAttachmentViewer(null)} style={{ color: '#9ca3af', fontSize: 20, padding: '0 8px' }}>×</button>
-              </div>
-            </div>
-            <div style={{ padding: 16, overflow: 'auto', maxHeight: 'calc(90vh - 120px)' }}>
-              {attachmentViewer.content_type?.startsWith('image/') ? (
-                <img
-                  src={`https://${attachmentViewer.bucket}.s3.amazonaws.com/${attachmentViewer.key}`}
-                  alt={attachmentViewer.file_name}
-                  style={{ maxWidth: '100%', height: 'auto' }}
-                />
-              ) : attachmentViewer.content_type?.startsWith('application/pdf') ? (
-                <iframe
-                  src={`https://${attachmentViewer.bucket}.s3.amazonaws.com/${attachmentViewer.key}`}
-                  title={attachmentViewer.file_name}
-                  style={{ width: '100%', height: 480 }}
-                />
-              ) : (
-                <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                  <div style={{ color: '#6b7280', marginBottom: 16 }}>Preview not available for this file type</div>
-                  <button
-                    onClick={() => {
-                      const link = document.createElement('a')
-                      link.href = `https://${attachmentViewer.bucket}.s3.amazonaws.com/${attachmentViewer.key}`
-                      link.download = attachmentViewer.file_name
-                      link.click()
-                    }}
-                    style={{ padding: '8px 16px', background: '#4f46e5', color: '#fff', borderRadius: 8 }}
-                  >
-                    Download {attachmentViewer.file_name}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
     </div>
     </>
   )

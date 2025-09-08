@@ -79,9 +79,15 @@ def get_all_tickets(
         
         tickets = response.get('Items', [])
         
+        print(f"📋 Retrieved {len(tickets)} tickets from database")
+        
         # Convert Decimal objects and sort by last_updated_at
         tickets = [decimal_to_int(ticket) for ticket in tickets]
         tickets.sort(key=lambda x: x.get('last_updated_at', ''), reverse=True)
+        
+        # Log some details about the tickets
+        for ticket in tickets[:3]:  # Log first 3 tickets for debugging
+            print(f"🎫 Ticket: {ticket.get('ticket_id')} - Status: {ticket.get('status')} - Messages: {ticket.get('message_count', 0)}")
         
         return tickets
         
@@ -90,16 +96,29 @@ def get_all_tickets(
         raise
 
 def get_ticket_by_id(ticket_id: str) -> Optional[Dict[str, Any]]:
-    """Retrieve a single ticket by ID"""
+    """Retrieve a single ticket by ID with messages"""
     try:
+        print(f"🎫 Getting ticket by ID: {ticket_id}")
+        
+        # Get ticket details
         response = tickets_table.get_item(Key={'ticket_id': ticket_id})
         
-        if 'Item' in response:
-            return decimal_to_int(response['Item'])
+        if 'Item' not in response:
+            print(f"❌ Ticket {ticket_id} not found")
+            return None
         
-        return None
+        ticket = decimal_to_int(response['Item'])
+        print(f"✅ Ticket found: {ticket.get('subject', 'No subject')}")
+        
+        # Get messages for this ticket
+        messages = get_ticket_messages(ticket_id)
+        ticket['messages'] = messages
+        
+        print(f"📨 Added {len(messages)} messages to ticket")
+        return ticket
         
     except Exception as e:
+        print(f"❌ Error retrieving ticket {ticket_id}: {str(e)}")
         logger.error(f"Error retrieving ticket {ticket_id}: {str(e)}")
         raise
 

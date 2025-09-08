@@ -14,7 +14,7 @@ export default function TicketsApp() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [activeStatus, setActiveStatus] = useState<StatusKey>('OPEN')
+  const [activeStatus, setActiveStatus] = useState<StatusKey>('IN_PROGRESS')
   const [activeTicketId, setActiveTicketId] = useState<string | undefined>()
   const [assistantOpen, setAssistantOpen] = useState(false)
 

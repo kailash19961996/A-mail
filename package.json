@@ -1,8 +1,9 @@
 {
-  "name": "bluelionlaw-ecosystem-portal-frontend",
-  "private": true,
-  "version": "0.0.0",
+  "name": "a-mail",
+  "private": false,
+  "version": "1.0.0",
   "type": "module",
+  "description": "Originally prototyped for my current firm, this client interaction project reimagines all client side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration which has cut down almost 80% of time spent on client interaction",
   "scripts": {
     "dev": "vite --mode production",
     "dev:beta": "vite --mode development",

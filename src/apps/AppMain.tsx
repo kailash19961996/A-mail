@@ -4,21 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import Loader from '../components/Loader';
-import ProtectedRoute from '../components/ProtectedRoute';
-import HomePage from '../pages-logic/HomePage';
-import ClientReviewPage from '../pages-logic/validate/ClientReviewPage';
-import IdReviewPage from '../pages-logic/validate/IdReviewPage';
-import SarReviewPage from '../pages-logic/review/SarReviewPage';
-import PreSubReviewPage from '../pages-logic/review/PreSubReviewPage';
-import FlocReviewPage from '../pages-logic/review/FlocReviewPage';
-import AllClientsPage from '../pages-logic/data/AllClientsPage';
-import AllCasesPage from '../pages-logic/data/AllCasesPage';
-import GeneralConfigPage from '../pages-logic/admin/GeneralConfigPage';
-import TemplatesConfigPage from '../pages-logic/admin/TemplatesConfigPage';
-import LendersConfigPage from '../pages-logic/admin/LendersConfigPage';
-import ActionsConfigPage from '../pages-logic/admin/ActionsConfigPage';
-import UserManagement from '../pages-logic/admin/UserManagement';
-import { ROLES, dev_log } from '../utils/coreUtils';
+import { dev_log } from '../utils/coreUtils';
+import InDevelopment from '../components/InDevelopment';
 import TicketsApp from '../tickets/TicketsApp';
 
 // ============================================================================
@@ -64,11 +51,11 @@ const AppMain: React.FC = () => {
     verifyAuth();
   }, [location.pathname, checkAuth, navigate, user, isAuthenticated]);
 
-  // Redirect to home if accessing root
+  // Redirect to tickets if accessing root
   useEffect(() => {
     if (location.pathname === '/') {
-      dev_log('🏠 Root path detected, redirecting to home...');
-      navigate('/home');
+      dev_log('🎟️ Root path detected, redirecting to tickets...');
+      navigate('/tickets');
     }
   }, [location.pathname, navigate]);
 
@@ -115,118 +102,34 @@ const AppMain: React.FC = () => {
               {/* Tickets Route - no header */}
               <Route path="/tickets" element={<TicketsApp />} />
               {/* Main Routes - All Users */}
-              <Route path="/home" element={<HomePage />} />
+              <Route path="/home" element={<InDevelopment title="Home" />} />
               
-              {/* Validation Screens */}
-              <Route 
-                path="/validate/client-review" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.REVIEW_CLIENT}>
-                    <ClientReviewPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/validate/id-review" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.REVIEW_ID}>
-                    <IdReviewPage />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* Validation Screens (placeholder) */}
+              <Route path="/validate/client-review" element={<InDevelopment title="Client Review" />} />
+              <Route path="/validate/id-review" element={<InDevelopment title="ID Review" />} />
               
-              {/* Review Screens */}
-              <Route 
-                path="/review/sar" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.REVIEW_SAR}>
-                    <SarReviewPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/review/presub" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.REVIEW_PRE_SUB}>
-                    <PreSubReviewPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/review/floc" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.REVIEW_FLOC}>
-                    <FlocReviewPage />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* Review Screens (placeholder) */}
+              <Route path="/review/sar" element={<InDevelopment title="SAR Review" />} />
+              <Route path="/review/presub" element={<InDevelopment title="PreSub Review" />} />
+              <Route path="/review/floc" element={<InDevelopment title="FLOC Review" />} />
               
-              {/* All Data Routes */}
-              <Route 
-                path="/all-clients" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.CLIENTS_ALL} fallbackPath="/home">
-                    <AllClientsPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/all-cases" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.CASES_ALL} fallbackPath="/home">
-                    <AllCasesPage />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* All Data Routes (placeholder) */}
+              <Route path="/all-clients" element={<InDevelopment title="All Clients" />} />
+              <Route path="/all-cases" element={<InDevelopment title="All Cases" />} />
               
-              {/* Admin Routes - Role-based access */}
-              <Route 
-                path="/admin/config" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.ADMIN_CONFIG}>
-                    <GeneralConfigPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin/templates" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.ADMIN_TEMPLATES}>
-                    <TemplatesConfigPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin/lenders" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.ADMIN_LENDERS}>
-                    <LendersConfigPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin/actions" 
-                element={
-                  <ProtectedRoute requiredRole={ROLES.ADMIN_ACTIONS}>
-                    <ActionsConfigPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin/users" 
-                element={
-                  <ProtectedRoute requiredRole="*">
-                    <UserManagement />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* Admin Routes (placeholder) */}
+              <Route path="/admin/config" element={<InDevelopment title="General Config" />} />
+              <Route path="/admin/templates" element={<InDevelopment title="Templates Config" />} />
+              <Route path="/admin/lenders" element={<InDevelopment title="Lenders Config" />} />
+              <Route path="/admin/actions" element={<InDevelopment title="Actions Config" />} />
+              <Route path="/admin/users" element={<InDevelopment title="User Management" />} />
               
-              {/* Legacy Routes - Redirect to home */}
+              {/* Legacy Routes - Redirect to tickets */}
               <Route path="/cases" element={<Navigate to="/all-cases" replace />} />
               <Route path="/admin" element={<Navigate to="/admin/config" replace />} />
               
               {/* Default Route */}
-              <Route path="*" element={<Navigate to="/home" replace />} />
+              <Route path="*" element={<Navigate to="/tickets" replace />} />
             </Routes>
                       )}
           </main>
