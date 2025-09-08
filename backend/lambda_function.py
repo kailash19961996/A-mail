@@ -181,16 +181,23 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 log_error("❌ Invalid message endpoint path", {'path': path, 'pathParts': path_parts})
                 return create_response(400, error="Invalid message endpoint path")
         
-        elif path.startswith('/tickets/') and len(path_parameters.get('ticket_id', '')) > 0:
-            ticket_id = path_parameters['ticket_id']
-            log_info("🎫 Single ticket endpoint accessed", {'ticketId': ticket_id, 'method': method})
-            
-            if method == 'GET':
-                log_info("🔍 Get single ticket request", {'ticketId': ticket_id})
-                return handle_get_ticket(ticket_id)
-            elif method == 'PATCH':
-                log_info("✏️ Update ticket request", {'ticketId': ticket_id})
-                return handle_update_ticket(ticket_id, body)
+        elif path.startswith('/tickets/') and not path.endswith('/messages'):
+            # Handle single ticket endpoint: /tickets/{ticket_id}
+            path_parts = path.split('/')
+            print(f"🔍 Single ticket path parts: {path_parts}")
+            if len(path_parts) >= 3:
+                ticket_id = path_parts[2]  # Extract ticket_id from /tickets/{ticket_id}
+                log_info("🎫 Single ticket endpoint accessed", {'ticketId': ticket_id, 'method': method, 'pathParts': path_parts})
+                
+                if method == 'GET':
+                    log_info("🔍 Get single ticket request", {'ticketId': ticket_id})
+                    return handle_get_ticket(ticket_id)
+                elif method == 'PATCH':
+                    log_info("✏️ Update ticket request", {'ticketId': ticket_id})
+                    return handle_update_ticket(ticket_id, body)
+            else:
+                log_error("❌ Invalid single ticket endpoint path", {'path': path, 'pathParts': path_parts})
+                return create_response(400, error="Invalid ticket endpoint path")
         
         # Route not found
         log_error("❌ Route not found", {'method': method, 'path': path})

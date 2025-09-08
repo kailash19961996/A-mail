@@ -62,6 +62,8 @@ class ApiService {
     assigned_to?: string
     ticket_group?: string
   }): Promise<ApiResponse<Ticket[]> | ErrorResponse> {
+    console.log('🚀 [API] Starting getTickets request', { filters })
+    
     const params = new URLSearchParams()
     if (filters?.status) params.append('status', filters.status)
     if (filters?.assigned_to) params.append('assigned_to', filters.assigned_to)
@@ -71,23 +73,41 @@ class ApiService {
       params.toString() ? '?' + params.toString() : ''
     }`
     
+    console.log('📡 [API] Fetching tickets from:', endpoint)
     const result = await this.makeRequest<Ticket[]>(endpoint)
     
     if (result.success) {
-      // Transform the data to include messages for each ticket
+      console.log('✅ [API] Tickets fetched successfully, count:', result.data.length)
+      
+      // Strategy 1: Try to get individual ticket details with messages (fallback to basic tickets)
       const ticketsWithMessages = await Promise.all(
         result.data.map(async (ticket) => {
           try {
+            console.log(`📨 [API] Fetching details for ticket: ${ticket.ticket_id}`)
+            
+            // Try to get full ticket details (should include messages from backend)
+            const fullTicketResult = await this.getTicket(ticket.ticket_id)
+            
+            if (fullTicketResult.success && fullTicketResult.data.messages) {
+              console.log(`✅ [API] Full ticket data retrieved for ${ticket.ticket_id}, messages: ${fullTicketResult.data.messages.length}`)
+              return fullTicketResult.data
+            }
+            
+            // Fallback: try direct message endpoint
+            console.log(`⚠️ [API] Full ticket failed, trying direct messages for ${ticket.ticket_id}`)
             const messagesResult = await this.getTicketMessages(ticket.ticket_id)
             const messages = messagesResult.success && Array.isArray(messagesResult.data) 
               ? messagesResult.data 
               : []
+            
+            console.log(`📊 [API] Direct messages result for ${ticket.ticket_id}: ${messages.length} messages`)
+            
             return {
               ...ticket,
               messages,
             }
           } catch (error) {
-            console.warn(`Failed to load messages for ticket ${ticket.ticket_id}:`, error)
+            console.error(`❌ [API] Failed to load messages for ticket ${ticket.ticket_id}:`, error)
             return {
               ...ticket,
               messages: [],
@@ -96,27 +116,44 @@ class ApiService {
         })
       )
       
+      console.log('🎯 [API] Final tickets with messages:', ticketsWithMessages.length)
+      
       return {
         ...result,
         data: ticketsWithMessages,
       }
     }
     
+    console.error('❌ [API] Failed to fetch tickets:', result)
     return result
   }
 
   async getTicket(ticketId: string): Promise<ApiResponse<Ticket> | ErrorResponse> {
+    console.log(`🎫 [API] Fetching single ticket: ${ticketId}`)
+    
     const result = await this.makeRequest<Ticket>(
       API_CONFIG.ENDPOINTS.TICKET_BY_ID(ticketId)
     )
     
     if (result.success) {
-      // Also fetch messages for this ticket
+      console.log(`✅ [API] Ticket ${ticketId} fetched successfully`)
+      
+      // Check if messages are already included in the response
+      if (result.data.messages && Array.isArray(result.data.messages)) {
+        console.log(`📨 [API] Ticket ${ticketId} already includes ${result.data.messages.length} messages`)
+        return result
+      }
+      
+      // If not, try to fetch messages separately
+      console.log(`📨 [API] Fetching messages separately for ticket ${ticketId}`)
       try {
         const messagesResult = await this.getTicketMessages(ticketId)
         const messages = messagesResult.success && Array.isArray(messagesResult.data) 
           ? messagesResult.data 
           : []
+        
+        console.log(`📊 [API] Fetched ${messages.length} messages for ticket ${ticketId}`)
+        
         return {
           ...result,
           data: {
@@ -125,7 +162,7 @@ class ApiService {
           },
         }
       } catch (error) {
-        console.warn(`Failed to load messages for ticket ${ticketId}:`, error)
+        console.error(`❌ [API] Failed to load messages for ticket ${ticketId}:`, error)
         return {
           ...result,
           data: {
@@ -136,13 +173,25 @@ class ApiService {
       }
     }
     
+    console.error(`❌ [API] Failed to fetch ticket ${ticketId}:`, result)
     return result
   }
 
   async getTicketMessages(ticketId: string): Promise<ApiResponse<Message[]> | ErrorResponse> {
-    return this.makeRequest<Message[]>(
-      API_CONFIG.ENDPOINTS.TICKET_MESSAGES(ticketId)
-    )
+    console.log(`📨 [API] Fetching messages for ticket: ${ticketId}`)
+    
+    const endpoint = API_CONFIG.ENDPOINTS.TICKET_MESSAGES(ticketId)
+    console.log(`📡 [API] Messages endpoint: ${endpoint}`)
+    
+    const result = await this.makeRequest<Message[]>(endpoint)
+    
+    if (result.success) {
+      console.log(`✅ [API] Messages fetched successfully for ${ticketId}, count: ${result.data.length}`)
+    } else {
+      console.error(`❌ [API] Failed to fetch messages for ${ticketId}:`, result)
+    }
+    
+    return result
   }
 
   async createTicket(ticketData: {
