@@ -32,8 +32,8 @@ const SidebarView: React.FC<SidebarViewProps> = ({ groups, footer }) => {
         </div>
 
         {/* nav */}
-        <nav className="flex-1 px-4 pt-1 pb-2 overflow-y-auto custom-scrollbar min-h-0">
-          <div className="space-y-2">
+        <nav className="flex-1 px-3 pt-1 pb-2 overflow-y-auto custom-scrollbar min-h-0">
+          <div className="space-y-1">
             {groups.map((group) => (
               <div key={group.key}>
                 <div className="px-1 mb-0">
@@ -43,7 +43,7 @@ const SidebarView: React.FC<SidebarViewProps> = ({ groups, footer }) => {
                 </div>
 
                 {!collapsedSections.has(group.key) && (
-                  <div className="ml-1 flex flex-col gap-0">
+                  <div className="ml-1 flex flex-col gap-0 mb-1">
                   {group.items.map((item) => (
                     <button
                       key={item.key}

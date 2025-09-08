@@ -126,16 +126,54 @@ def get_ticket_by_id(ticket_id: str) -> Optional[Dict[str, Any]]:
 def get_ticket_messages(ticket_id: str) -> List[Dict[str, Any]]:
     """Retrieve all messages for a ticket, ordered chronologically"""
     try:
-        # Query by partition key using Key expression to avoid expression parsing errors
-        response = messages_table.query(
-            KeyConditionExpression=Key('ticket_id').eq(ticket_id),
-            ScanIndexForward=True  # Sort by message_sort_key ascending (chronological)
-        )
+        print(f"📨 Starting message retrieval for ticket: {ticket_id}")
         
-        messages = response.get('Items', [])
-        return [decimal_to_int(message) for message in messages]
+        # Query with pagination protection (1MB page limit)
+        messages: List[Dict[str, Any]] = []
+        exclusive_start_key = None
+        page_count = 0
+        
+        while True:
+            page_count += 1
+            print(f"📄 Querying page {page_count} for ticket {ticket_id}")
+            
+            kwargs = {
+                'KeyConditionExpression': Key('ticket_id').eq(ticket_id),
+                'ScanIndexForward': True
+            }
+            if exclusive_start_key:
+                kwargs['ExclusiveStartKey'] = exclusive_start_key
+                print(f"🔗 Using pagination key: {exclusive_start_key}")
+            
+            print(f"🔍 Query parameters: {kwargs}")
+            
+            response = messages_table.query(**kwargs)
+            items = response.get('Items', [])
+            messages.extend(items)
+            
+            print(f"📊 Page {page_count} returned {len(items)} items")
+            print(f"📊 Total messages so far: {len(messages)}")
+            
+            exclusive_start_key = response.get('LastEvaluatedKey')
+            if not exclusive_start_key:
+                print(f"✅ No more pages - completed pagination")
+                break
+            else:
+                print(f"➡️ More pages available, continuing...")
+        
+        print(f"✅ Retrieved {len(messages)} total messages for ticket {ticket_id}")
+        
+        # Convert and return
+        converted_messages = [decimal_to_int(message) for message in messages]
+        print(f"🔄 Converted {len(converted_messages)} messages from Decimal format")
+        
+        return converted_messages
         
     except Exception as e:
+        print(f"❌ Error retrieving messages for ticket {ticket_id}: {str(e)}")
+        print(f"❌ Error type: {type(e).__name__}")
+        import traceback
+        print(f"❌ Full traceback: {traceback.format_exc()}")
         logger.error(f"Error retrieving messages for ticket {ticket_id}: {str(e)}")
         raise
 

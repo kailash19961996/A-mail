@@ -165,15 +165,21 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         elif path.startswith('/tickets/') and path.endswith('/messages'):
             # Handle messages endpoint BEFORE single ticket endpoint
-            ticket_id = path.split('/')[2]  # Extract ticket_id from /tickets/{ticket_id}/messages
-            log_info("💬 Message endpoint accessed", {'ticketId': ticket_id, 'method': method})
-            
-            if method == 'GET':
-                log_info("📨 Get messages request", {'ticketId': ticket_id})
-                return handle_get_ticket_messages(ticket_id)
-            elif method == 'POST':
-                log_info("✉️ Add message request", {'ticketId': ticket_id})
-                return handle_add_message(ticket_id, body)
+            path_parts = path.split('/')
+            print(f"🔍 Path parts: {path_parts}")
+            if len(path_parts) >= 3:
+                ticket_id = path_parts[2]  # Extract ticket_id from /tickets/{ticket_id}/messages
+                log_info("💬 Message endpoint accessed", {'ticketId': ticket_id, 'method': method, 'pathParts': path_parts})
+                
+                if method == 'GET':
+                    log_info("📨 Get messages request", {'ticketId': ticket_id})
+                    return handle_get_ticket_messages(ticket_id)
+                elif method == 'POST':
+                    log_info("✉️ Add message request", {'ticketId': ticket_id})
+                    return handle_add_message(ticket_id, body)
+            else:
+                log_error("❌ Invalid message endpoint path", {'path': path, 'pathParts': path_parts})
+                return create_response(400, error="Invalid message endpoint path")
         
         elif path.startswith('/tickets/') and len(path_parameters.get('ticket_id', '')) > 0:
             ticket_id = path_parameters['ticket_id']
@@ -273,6 +279,14 @@ def handle_get_ticket_messages(ticket_id: str) -> Dict[str, Any]:
     """
     try:
         log_info("📨 Fetching ticket messages", {'ticketId': ticket_id})
+        
+        # Validate ticket_id format
+        if not ticket_id or not ticket_id.strip():
+            log_error("❌ Invalid ticket ID provided", {'ticketId': ticket_id})
+            return create_response(400, error="Invalid ticket ID")
+        
+        ticket_id = ticket_id.strip()
+        log_info("🔍 Cleaned ticket ID", {'cleanedTicketId': ticket_id})
         
         messages = get_ticket_messages(ticket_id)
         
