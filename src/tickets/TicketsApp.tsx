@@ -17,7 +17,6 @@ export default function TicketsApp() {
   const [activeStatus, setActiveStatus] = useState<StatusKey>('IN_PROGRESS')
   const [activeTicketId, setActiveTicketId] = useState<string | undefined>()
   const [assistantOpen, setAssistantOpen] = useState(false)
-  const [loadingActiveMessages, setLoadingActiveMessages] = useState(false)
 
   const loadTickets = async () => {
     setLoading(true)
@@ -132,9 +131,7 @@ export default function TicketsApp() {
       // If messages already present, skip
       if (Array.isArray(tickets[ticketIndex].messages) && tickets[ticketIndex].messages!.length > 0) return
 
-      setLoadingActiveMessages(true)
       const full = await apiService.getTicket(activeTicketId)
-      setLoadingActiveMessages(false)
 
       if (!isErrorResponse(full)) {
         setTickets(prev => prev.map(t => t.ticket_id === activeTicketId ? { ...t, ...full.data } : t))
