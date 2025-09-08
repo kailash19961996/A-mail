@@ -24,7 +24,7 @@ const SidebarView: React.FC<SidebarViewProps> = ({ groups, footer }) => {
   const [collapsedSections] = useState<Set<string>>(new Set());
 
   return (
-    <div className="w-56 glass-card rounded-2xl text-gray-800 h-full max-h-screen shadow-2xl border border-white/20 overflow-hidden">
+    <div className="w-56 glass-card rounded-2xl text-gray-800 h-full shadow-2xl border border-white/20 overflow-hidden pb-3">
       <div className="flex flex-col h-full">
         {/* Simple header without toggle button */}
         <div className="px-4 pt-3 pb-2">
@@ -32,18 +32,18 @@ const SidebarView: React.FC<SidebarViewProps> = ({ groups, footer }) => {
         </div>
 
         {/* nav */}
-        <nav className="flex-1 px-3 pt-1 pb-2 overflow-y-auto custom-scrollbar min-h-0">
-          <div className="space-y-1">
+        <nav className="flex-1 px-3 pt-3 pb-2 overflow-y-auto custom-scrollbar min-h-0">
+          <div className="space-y-4">
             {groups.map((group) => (
               <div key={group.key}>
-                <div className="px-1 mb-0">
+                <div className="px-1 mb-1">
                   <span className="px-1 text-[11px] font-semibold text-gray-600 tracking-wider uppercase opacity-80">
                     {group.label}
                   </span>
                 </div>
 
                 {!collapsedSections.has(group.key) && (
-                  <div className="ml-1 flex flex-col gap-0 mb-1">
+                  <div className="ml-1 flex flex-col gap-1">
                   {group.items.map((item) => (
                     <button
                       key={item.key}
@@ -73,9 +73,9 @@ const SidebarView: React.FC<SidebarViewProps> = ({ groups, footer }) => {
           </div>
         </nav>
 
-        <div className="px-3 mt-2 flex-shrink-0"><div className="border-t border-white/40"></div></div>
+        <div className="px-3 mt-1 flex-shrink-0"><div className="border-t border-white/40"></div></div>
         {footer && (
-          <div className="p-3 flex-shrink-0">
+          <div className="px-3 pb-2 pt-1 flex-shrink-0">
             <div className="rounded-lg p-2 text-xs text-center">
               {footer}
             </div>

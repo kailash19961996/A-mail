@@ -25,10 +25,12 @@ class ApiService {
   ): Promise<ApiResponse<T> | ErrorResponse> {
     try {
       const url = `${this.baseUrl}${endpoint}`
+      const hasBody = typeof options.body !== 'undefined'
       const response = await fetch(url, {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
           ...options.headers,
         },
       })
@@ -63,7 +65,7 @@ class ApiService {
     ticket_group?: string
   }): Promise<ApiResponse<Ticket[]> | ErrorResponse> {
     console.log('🚀 [API] Starting getTickets request', { filters })
-    
+
     const params = new URLSearchParams()
     if (filters?.status) params.append('status', filters.status)
     if (filters?.assigned_to) params.append('assigned_to', filters.assigned_to)
@@ -72,58 +74,18 @@ class ApiService {
     const endpoint = `${API_CONFIG.ENDPOINTS.TICKETS}${
       params.toString() ? '?' + params.toString() : ''
     }`
-    
+
     console.log('📡 [API] Fetching tickets from:', endpoint)
     const result = await this.makeRequest<Ticket[]>(endpoint)
-    
+
+    // LAZY-LOAD STRATEGY: Only return the ticket list here. Do NOT fetch
+    // per-ticket details/messages up-front. The UI will request messages
+    // for the currently active ticket on demand.
     if (result.success) {
       console.log('✅ [API] Tickets fetched successfully, count:', result.data.length)
-      
-      // Strategy 1: Try to get individual ticket details with messages (fallback to basic tickets)
-      const ticketsWithMessages = await Promise.all(
-        result.data.map(async (ticket) => {
-          try {
-            console.log(`📨 [API] Fetching details for ticket: ${ticket.ticket_id}`)
-            
-            // Try to get full ticket details (should include messages from backend)
-            const fullTicketResult = await this.getTicket(ticket.ticket_id)
-            
-            if (fullTicketResult.success && fullTicketResult.data.messages) {
-              console.log(`✅ [API] Full ticket data retrieved for ${ticket.ticket_id}, messages: ${fullTicketResult.data.messages.length}`)
-              return fullTicketResult.data
-            }
-            
-            // Fallback: try direct message endpoint
-            console.log(`⚠️ [API] Full ticket failed, trying direct messages for ${ticket.ticket_id}`)
-            const messagesResult = await this.getTicketMessages(ticket.ticket_id)
-            const messages = messagesResult.success && Array.isArray(messagesResult.data) 
-              ? messagesResult.data 
-              : []
-            
-            console.log(`📊 [API] Direct messages result for ${ticket.ticket_id}: ${messages.length} messages`)
-            
-            return {
-              ...ticket,
-              messages,
-            }
-          } catch (error) {
-            console.error(`❌ [API] Failed to load messages for ticket ${ticket.ticket_id}:`, error)
-            return {
-              ...ticket,
-              messages: [],
-            }
-          }
-        })
-      )
-      
-      console.log('🎯 [API] Final tickets with messages:', ticketsWithMessages.length)
-      
-      return {
-        ...result,
-        data: ticketsWithMessages,
-      }
+      return result
     }
-    
+
     console.error('❌ [API] Failed to fetch tickets:', result)
     return result
   }

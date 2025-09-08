@@ -95,22 +95,22 @@ const Sidebar: React.FC = () => {
     
     // Matter Review
     {
-      label: 'Matter Review',
+      label: 'Case Management',
       icon: 'Eye',
       items: [
         { 
           path: '/review/sar', 
-          label: 'SAR Review', 
+          label: 'Evidence Review', 
           icon: 'FileCheck'
         },
         { 
           path: '/review/presub', 
-          label: 'Pre-Submission', 
+          label: 'Preparation', 
           icon: 'FileCheck'
         },
         { 
           path: '/review/floc', 
-          label: 'FLOC Review', 
+          label: 'Final Checks', 
           icon: 'FileCheck'
         }
       ]
@@ -265,10 +265,12 @@ const Sidebar: React.FC = () => {
   ) : null;
 
   return (
-    <SidebarView
-      groups={viewGroups}
-      footer={footer}
-    />
+    <div className="h-full py-4">
+      <SidebarView
+        groups={viewGroups}
+        footer={footer}
+      />
+    </div>
   );
 };
 

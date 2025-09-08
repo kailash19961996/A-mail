@@ -17,7 +17,7 @@ export function TicketList({ tickets, activeTicketId, onSelect }: Props) {
         {tickets
           .sort((a, b) => new Date(b.last_message_at || b.last_updated_at).getTime() - new Date(a.last_message_at || a.last_updated_at).getTime())
           .map((t) => {
-            const lastMessage = t.messages?.[t.messages.length - 1]
+            const lastMessage = t.messages && t.messages.length > 0 ? t.messages[t.messages.length - 1] : undefined
             const lastDate = t.last_message_at || t.last_updated_at
             const dt = dayjs(lastDate).format('MMM D')
             
@@ -51,7 +51,7 @@ export function TicketList({ tickets, activeTicketId, onSelect }: Props) {
                   {t.subject}
                 </div>
                 <div className="text-[11px] text-gray-500 line-clamp-1">
-                  {lastMessage?.text || 'No messages yet'}
+                  {lastMessage?.text || 'Loading preview…'}
                 </div>
               </button>
             )

@@ -183,7 +183,7 @@ def generate_ticket_scenarios():
     last_names = ['Smith', 'Jones', 'Williams', 'Brown', 'Wilson', 'Johnson', 'Davies', 'Robinson', 'Wright', 'Thompson',
                  'Evans', 'Walker', 'White', 'Roberts', 'Green', 'Hall', 'Wood', 'Jackson', 'Clarke', 'Patel']
     
-    channels = ['Website Form', 'Direct Email', 'Phone Call', 'Client Portal', 'Social Media']
+    channels = ['Website Form', 'Direct Email', 'Third Party Website', 'Client Portal', 'Social Media']
     categories = ['personal injury', 'commercial litigation', 'employment law', 'property law', 'family law', 
                  'IP law', 'medical negligence', 'corporate law', 'defamation', 'regulatory']
     priorities = ['low', 'medium', 'high', 'urgent']
@@ -210,8 +210,13 @@ def generate_ticket_scenarios():
     print(f"✅ Generated {len(all_scenarios)} diverse legal scenarios")
     return all_scenarios
 
-def generate_realistic_conversation(ticket_id, client_email, scenario, target_status):
-    """Generate realistic back-and-forth conversation for a ticket with specific message counts"""
+def generate_realistic_conversation(ticket_id, client_email, scenario, target_status, end_with_agent=False):
+    """Generate realistic back-and-forth conversation for a ticket with specific message counts.
+
+    If end_with_agent is True, ensure the final message is authored by an AGENT so that
+    next_action becomes CLIENT. This is achieved by making the total number of messages even
+    (conversation starts with CLIENT at index 0, AGENT at odd indices).
+    """
     
     # Define message counts based on status
     message_counts = {
@@ -222,6 +227,10 @@ def generate_realistic_conversation(ticket_id, client_email, scenario, target_st
     }
     
     total_messages = message_counts.get(target_status, 6)
+    # Ensure the last message comes from an AGENT when requested
+    # The sequence starts with CLIENT at index 0. An odd last index implies AGENT.
+    if end_with_agent and (total_messages % 2 == 1):
+        total_messages += 1
     messages = []
     
     # Start from 30-90 days ago (no future dates)
@@ -340,6 +349,9 @@ def create_tickets_and_messages():
     # Shuffle to randomize which scenarios get which status
     random.shuffle(status_list)
     
+    # Alternate IN_PROGRESS conversations to end with agent so next_action becomes CLIENT for ~50%
+    in_progress_end_with_agent_toggle = False
+
     for i, scenario in enumerate(scenarios):
         try:
             # Create unique ticket ID
@@ -349,7 +361,11 @@ def create_tickets_and_messages():
             status = status_list[i] if i < len(status_list) else random.choice(statuses)
             
             # Generate realistic message conversation with specific status
-            messages = generate_realistic_conversation(ticket_id, scenario['client']['email'], scenario, status)
+            end_with_agent = False
+            if status == 'IN_PROGRESS':
+                in_progress_end_with_agent_toggle = not in_progress_end_with_agent_toggle
+                end_with_agent = in_progress_end_with_agent_toggle
+            messages = generate_realistic_conversation(ticket_id, scenario['client']['email'], scenario, status, end_with_agent=end_with_agent)
             
             # Set assignment based on status
             if status == 'OPEN':
