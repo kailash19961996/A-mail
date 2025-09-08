@@ -6,6 +6,7 @@ from decimal import Decimal
 import uuid
 import json
 import logging
+from boto3.dynamodb.conditions import Key
 
 # Configure logging
 logger = logging.getLogger()
@@ -125,9 +126,9 @@ def get_ticket_by_id(ticket_id: str) -> Optional[Dict[str, Any]]:
 def get_ticket_messages(ticket_id: str) -> List[Dict[str, Any]]:
     """Retrieve all messages for a ticket, ordered chronologically"""
     try:
+        # Query by partition key using Key expression to avoid expression parsing errors
         response = messages_table.query(
-            KeyConditionExpression='ticket_id = :ticket_id',
-            ExpressionAttributeValues={':ticket_id': ticket_id},
+            KeyConditionExpression=Key('ticket_id').eq(ticket_id),
             ScanIndexForward=True  # Sort by message_sort_key ascending (chronological)
         )
         
