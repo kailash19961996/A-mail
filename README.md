@@ -1,15 +1,19 @@
 # A-mail
 
-**A modern client interaction platform for litigation firms**
+**A full stack modern mailbox with AI driven features for litigation firms**
 
-Originally prototyped for my current firm, this client interaction project reimagines all client side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration which has cut down almost 80% of time spent on client interaction.
+Originally prototyped for my current firm, this mailbox reimagines all client side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration which has cut down almost 80% of time spent on client interaction.
 
-## 🚀 Features
+Link
+Screenshot
+Video
+
+## Features
 
 ### Core Functionality
 - **Ticket Management System**: Complete CRUD operations for client tickets
 - **Real-time Messaging**: Instant messaging with 5-second undo functionality
-- **AI Assistant Integration**: Intelligent chat support for case analysis
+- **AI Assistant Integration**: Intelligent chat support for case analysis and handling
 - **Status Management**: Comprehensive ticket lifecycle management (Open, In Progress, On Hold, Resolved)
 - **Assignment System**: Ticket assignment and workload distribution
 - **Group Management**: Organize tickets by department (Ops Team, Tech, Litigation)
@@ -20,7 +24,7 @@ Originally prototyped for my current firm, this client interaction project reima
 - **DynamoDB Database**: NoSQL database for high performance
 - **Real-time Updates**: Optimistic UI updates with backend synchronization
 - **Comprehensive Logging**: Detailed logging for debugging and monitoring
-- **CORS Support**: Cross-origin resource sharing for secure API access
+- **CORS Support**: Cross-origin resource sharing for secure API access through AWS API gateway
 
 ## Architecture
 
@@ -139,74 +143,7 @@ aws lambda update-function-code --function-name a-mail-api --zip-file fileb://la
 
 ### Request/Response Examples
 
-**Create Ticket:**
-```json
-POST /tickets
-{
-  "subject": "Contract dispute inquiry",
-  "client": {
-    "first_name": "John",
-    "last_name": "Smith",
-    "email": "john.smith@email.com",
-    "phone": "+44-20-1234-5678"
-  },
-  "category": "commercial litigation",
-  "priority": "medium"
-}
-```
 
-**Add Message:**
-```json
-POST /tickets/{ticket_id}/messages
-{
-  "text": "Thank you for contacting us. We'll review your case.",
-  "created_by_type": "AGENT",
-  "created_by_id": "agent@firm.com"
-}
-```
-
-## 🔧 Development
-
-### Frontend Development
-```bash
-# Start development server with hot reload
-npm run dev
-
-# Run type checking
-npm run type-check
-
-# Build for production
-npm run build
-```
-
-### Backend Development
-```bash
-# Run local tests
-python -m pytest tests/
-
-# Format code
-black lambda_function.py utils.py ai.py
-
-# Lint code
-flake8 *.py
-```
-
-## Logging & Monitoring
-
-### Frontend Logging
-The frontend uses comprehensive console logging with emojis for easy identification:
-- 🎟️ Ticket operations
-- 📝 Message handling
-- 🔄 Status changes
-- 🤖 AI interactions
-- ⚠️ Warnings and errors
-
-### Backend Logging
-The backend provides detailed CloudWatch logging:
-- Request/response tracking
-- Database operations
-- Error handling with stack traces
-- Performance metrics
 
 ## Security Features
 
@@ -222,17 +159,6 @@ The backend provides detailed CloudWatch logging:
 - **Real-time Updates**: Optimistic UI updates for better user experience
 - **Accessibility**: WCAG compliant design patterns
 - **Dark Mode Ready**: CSS custom properties for easy theming
-
-## 🧪 Testing
-
-```bash
-# Frontend tests
-npm run test
-
-# Backend tests
-cd backend
-python -m pytest
-```
 
 ## Performance
 
@@ -259,4 +185,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by modern customer service platforms
 - Built with best practices for scalability and maintainability
 
-**A-mail** - Revolutionizing client communication for litigation firms with AI-powered efficiency.
+**A-mail** - Revolutionizing client communication for firms with AI-powered efficiency.
