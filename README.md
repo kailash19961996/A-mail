@@ -4,9 +4,11 @@
 
 Originally prototyped for my current firm, this mailbox reimagines all client-side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration. This system has reduced time spent on client interaction by nearly 80%.
 
-\[Website Link Placeholder]
-\[Screenshot]
-\[Video Link Placeholder]
+Try it yourself at [https://www.a-mail.live](https://www.a-mail.live)
+
+[Screenshot]
+
+[Video Link Placeholder]
 
 ## Features
 
@@ -104,6 +106,22 @@ Create `.env` file in project root:
 VITE_API_BASE_URL=https://your-api-gateway-url.amazonaws.com/prod
 VITE_APP_NAME=A-mail
 VITE_LOG_LEVEL=info
+```
+
+## Deployment
+
+### Frontend Deployment
+
+```bash
+npm run build
+# Deploy to Netlify, Vercel, or S3
+```
+
+### Backend Deployment
+
+```bash
+zip -r lambda-deployment.zip lambda_function.py utils.py ai.py
+aws lambda update-function-code --function-name a-mail-api --zip-file fileb://lambda-deployment.zip
 ```
 
 ## API Documentation
