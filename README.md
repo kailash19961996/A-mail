@@ -1,14 +1,15 @@
 # A-mail
 
-**A full stack modern mailbox with AI-driven features for firms handling heavy client communication.**
+**A full stack modern mailbox with AI features deployed fully on AWS for firms handling heavy client communication.**
 
-Originally prototyped for my current firm, this mailbox reimagines all client-side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration. This system has reduced time spent on client interaction by nearly 80%.
+Originally prototyped for my current firm, I reimagined this mailbox to handle all client-side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration and fully deployed on AWS. This system has reduced time spent on client interaction by nearly 80%.
 
-Try it yourself at [https://www.a-mail.live](https://www.a-mail.live)
+Try it yourself at [www.A-Mail.live](https://www.a-mail.live)
 
-[Screenshot]
+<img width="2380" height="1224" alt="Screenshot 2025-09-14 at 20 10 38" src="https://github.com/user-attachments/assets/f1b45ca3-f89a-4c94-a946-07a9b65f4e8a" />
 
-[Video Link Placeholder]
+[Watch the demo video](https://youtu.be/kAlLpC9a_uQ)
+Leave your feedbacks [here](https://citrine-hamburger-7f5.notion.site/ebd/26e19d49e5c180fa9829de975e8ddc1a)
 
 ## Features
 
