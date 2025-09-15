@@ -1,18 +1,29 @@
-# A-mail
+# A-Mail
 
-**A full stack modern mailbox with AI features deployed fully on AWS for firms handling heavy client communication.**
+**A full stack, modern, AI mailbox deployed fully on AWS for firms handling heavy client communication.**
 
-Originally prototyped for my current firm, I reimagined this mailbox to handle all client-side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration and fully deployed on AWS. This system has reduced time spent on client interaction by nearly 80%.
+Originally prototyped for my current firm, I reimagined this AI infused mailbox to handle all client-side communication (direct emails, website form submissions, client portal enquiries) with sleek and secure AI integration and fully deployed on AWS. This system has reduced time spent on client interaction by <span style="color:red; font-weight:bold;">nearly 70%.</span>
 
 Try it yourself at [www.A-Mail.live](https://www.a-mail.live)
 
-<img width="2380" height="1224" alt="Screenshot 2025-09-14 at 20 10 38" src="https://github.com/user-attachments/assets/f1b45ca3-f89a-4c94-a946-07a9b65f4e8a" />
+<img width="2380" height="700" alt="Screenshot 2025-09-14 at 20 10 38" src="https://github.com/user-attachments/assets/f1b45ca3-f89a-4c94-a946-07a9b65f4e8a" />
 
-[Watch the demo video](https://youtu.be/kAlLpC9a_uQ)
-Leave your feedbacks [here](https://citrine-hamburger-7f5.notion.site/ebd/26e19d49e5c180fa9829de975e8ddc1a)
+[CLICK HERE FOR DEMO VIDEO](https://youtu.be/kAlLpC9a_uQ)
+
+[LEAVE YOUR FEEDBACK HERE](https://citrine-hamburger-7f5.notion.site/ebd/26e19d49e5c180fa9829de975e8ddc1a)
 
 ## Features
 
+### Technical Features
+* <span style="color:red; font-weight:bold;">**AWS Route 52**</span>: Domain, routing and metrics
+* <span style="color:red; font-weight:bold;">**AWS Amplify - React + TypeScript - Frontend**</span>: Modern, type-safe UI, deployed on AWS Amplify
+* <span style="color:red; font-weight:bold;">**AWS Lambda - Python - Backend**</span>: Python-based serverless, scalable architecture
+* <span style="color:red; font-weight:bold;">**Amazon S3**</span>: Used to package Lambda layers
+* <span style="color:red; font-weight:bold;">**AWS API Gateway**</span>: Manages secure connections between frontend and backend
+* <span style="color:red; font-weight:bold;">**AWS DynamoDB Database**</span>: High-performance NoSQL storage for tickets and messages
+* <span style="color:red; font-weight:bold;">**Real-time Updates**</span>: Optimistic UI with backend synchronization
+* <span style="color:red; font-weight:bold;">**CORS Support**</span>: Secure API access
+* <span style="color:red; font-weight:bold;">**OpenAI API**</span>: For LLM support
 ### Core Functionality
 
 * **AI Assistant Integration**: A context-aware chatbot that locks to the first conversation it is opened from, ensuring continuity. Switching to other cases is seamless, but by default it stays tied to the original case for convenience and efficiency.
@@ -22,19 +33,11 @@ Leave your feedbacks [here](https://citrine-hamburger-7f5.notion.site/ebd/26e19d
 * **Assignment System**: Distribute workload through ticket assignment
 * **Group Management**: Organize tickets by department (Ops, Tech, Litigation)
 
-### Technical Features
-
-* **React + TypeScript Frontend**: Modern, type-safe UI, deployed on AWS Amplify
-* **AWS Lambda Backend**: Python-based serverless, scalable architecture
-* **Amazon S3**: Used to package Lambda layers
-* **AWS API Gateway**: Manages secure connections between frontend and backend
-* **DynamoDB Database**: High-performance NoSQL storage for tickets and messages
-* **Real-time Updates**: Optimistic UI with backend synchronization
-* **CORS Support**: Secure API access
-
 ## Architecture
 
 ```
+AWS Route 52
+    ↓
 AWS Amplify (React + TypeScript)
     ↓
 AWS API Gateway (CORS configured)
