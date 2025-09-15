@@ -15,15 +15,19 @@ Try it yourself at [www.A-Mail.live](https://www.a-mail.live)
 ## Features
 
 ### Technical Features
-* <span style="color:red; font-weight:bold;">**AWS Route 52**</span>: Domain, routing and metrics
-* <span style="color:red; font-weight:bold;">**AWS Amplify - React + TypeScript - Frontend**</span>: Modern, type-safe UI, deployed on AWS Amplify
-* <span style="color:red; font-weight:bold;">**AWS Lambda - Python - Backend**</span>: Python-based serverless, scalable architecture
-* <span style="color:red; font-weight:bold;">**Amazon S3**</span>: Used to package Lambda layers
-* <span style="color:red; font-weight:bold;">**AWS API Gateway**</span>: Manages secure connections between frontend and backend
-* <span style="color:red; font-weight:bold;">**AWS DynamoDB Database**</span>: High-performance NoSQL storage for tickets and messages
-* <span style="color:red; font-weight:bold;">**Real-time Updates**</span>: Optimistic UI with backend synchronization
-* <span style="color:red; font-weight:bold;">**CORS Support**</span>: Secure API access
-* <span style="color:red; font-weight:bold;">**OpenAI API**</span>: For LLM support
+
+| Feature | Description |
+|---------|-------------|
+| <span style="color:red; font-weight:bold;">AWS Route 52</span> | Domain, routing and metrics |
+| <span style="color:red; font-weight:bold;">AWS Amplify - React + TypeScript - Frontend</span> | Modern, type-safe UI, deployed on AWS Amplify |
+| <span style="color:red; font-weight:bold;">AWS Lambda - Python - Backend</span> | Python-based serverless, scalable architecture |
+| <span style="color:red; font-weight:bold;">Amazon S3</span> | Used to package Lambda layers |
+| <span style="color:red; font-weight:bold;">AWS API Gateway</span> | Manages secure connections between frontend and backend |
+| <span style="color:red; font-weight:bold;">AWS DynamoDB Database</span> | High-performance NoSQL storage for tickets and messages |
+| <span style="color:red; font-weight:bold;">Real-time Updates</span> | Optimistic UI with backend synchronization |
+| <span style="color:red; font-weight:bold;">CORS Support</span> | Secure API access |
+| <span style="color:red; font-weight:bold;">OpenAI API</span> | For LLM support |
+
 ### Core Functionality
 
 * **AI Assistant Integration**: A context-aware chatbot that locks to the first conversation it is opened from, ensuring continuity. Switching to other cases is seamless, but by default it stays tied to the original case for convenience and efficiency.
