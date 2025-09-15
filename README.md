@@ -27,6 +27,7 @@ Try it yourself at [www.A-Mail.live](https://www.a-mail.live)
 | <span style="color:red; font-weight:bold;">Real-time Updates</span> | Optimistic UI with backend synchronization |
 | <span style="color:red; font-weight:bold;">CORS Support</span> | Secure API access |
 | <span style="color:red; font-weight:bold;">OpenAI API</span> | For LLM support |
+| <span style="color:red; font-weight:bold;">Github Action</span> | For CI/CD |
 
 ### Core Functionality
 
