@@ -16,7 +16,7 @@ Try it yourself at [www.A-Mail.live](https://www.a-mail.live)
 
 ### Technical Features
 
-| Feature | Description |
+| Tech | Description |
 |---------|-------------|
 | <span style="color:red; font-weight:bold;">AWS Route 52</span> | Domain, routing and metrics |
 | <span style="color:red; font-weight:bold;">AWS Amplify - React + TypeScript - Frontend</span> | Modern, type-safe UI, deployed on AWS Amplify |
