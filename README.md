@@ -10,7 +10,7 @@ Try it yourself at [www.A-Mail.live](https://www.a-mail.live)
 
 [CLICK HERE FOR DEMO VIDEO](https://youtu.be/kAlLpC9a_uQ)
 
-[LEAVE YOUR FEEDBACK HERE](https://citrine-hamburger-7f5.notion.site/ebd/26e19d49e5c180fa9829de975e8ddc1a)
+[LEAVE YOUR FEEDBACK HERE](https://slately.notion.site/26e19d49e5c180fa9829de975e8ddc1a?pvs=105)
 
 ### Technical Features
 
